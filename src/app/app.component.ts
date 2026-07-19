@@ -19,6 +19,8 @@ export class AppComponent implements OnInit, OnDestroy {
   title = 'syllabus-viewer';
   syllabus!: Syllabus;
   checkedStates!: CheckedStates;
+  profiles: any[] = [];
+  activeProfileCode: string = '';
   
   activeTab: 'schedule' | 'grading' | 'editor' = 'schedule';
   searchQuery: string = '';
@@ -27,6 +29,14 @@ export class AppComponent implements OnInit, OnDestroy {
   editorJson: string = '';
   jsonError: string | null = null;
   showResetToast: boolean = false;
+
+  // New course modal properties
+  showAddCourseModal: boolean = false;
+  newCourseCode: string = '';
+  newCourseTitle: string = '';
+  newCourseDesc: string = '';
+  newInstructorName: string = '';
+  newInstructorEmail: string = '';
 
   progress = { total: 0, completed: 0, percentage: 0 };
 
@@ -50,6 +60,20 @@ export class AppComponent implements OnInit, OnDestroy {
       this.syllabusService.getCheckedStates$().subscribe(states => {
         this.checkedStates = states;
         this.updateProgress();
+      })
+    );
+
+    // Subscribe to Course Profiles
+    this.subs.add(
+      this.syllabusService.getProfiles$().subscribe(profiles => {
+        this.profiles = profiles;
+      })
+    );
+
+    // Subscribe to Active Profile Code
+    this.subs.add(
+      this.syllabusService.getActiveProfileCode$().subscribe(code => {
+        this.activeProfileCode = code;
       })
     );
   }
@@ -88,6 +112,68 @@ export class AppComponent implements OnInit, OnDestroy {
 
   printSyllabus(): void {
     window.print();
+  }
+
+  switchProfile(code: string): void {
+    this.syllabusService.switchProfile(code);
+    this.expandedWeek = 1;
+  }
+
+  deleteActiveProfile(): void {
+    if (this.profiles.length <= 1) return;
+    const confirmDelete = confirm(`Are you sure you want to delete the course "${this.syllabus.title}" (${this.activeProfileCode})?`);
+    if (confirmDelete) {
+      this.syllabusService.deleteProfile(this.activeProfileCode);
+      this.expandedWeek = 1;
+    }
+  }
+
+  createNewCourse(): void {
+    if (!this.newCourseCode.trim() || !this.newCourseTitle.trim()) return;
+    
+    const newSyllabus: Syllabus = {
+      title: this.newCourseTitle.trim(),
+      courseCode: this.newCourseCode.trim().toUpperCase(),
+      description: this.newCourseDesc.trim() || 'No description provided.',
+      instructor: {
+        name: this.newInstructorName.trim() || 'TBD',
+        email: this.newInstructorEmail.trim() || 'tbd@university.edu',
+        office: 'TBD',
+        officeHours: 'TBD',
+        avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'
+      },
+      grading: [
+        { label: 'Weekly Tasks & Quizzes', weightPercentage: 40 },
+        { label: 'Final Examination', weightPercentage: 60 }
+      ],
+      schedule: [
+        {
+          week: 1,
+          title: 'Introduction to Course Frameworks',
+          description: 'Initial syllabus outline, study goals, and assignment timelines.',
+          readings: ['Syllabus Guidelines Document'],
+          assignments: [
+            { id: 'w1-a1', label: 'Assignment 1: Student Welcome Checklist', dueDate: '2026-09-01' }
+          ]
+        }
+      ],
+      policies: [
+        {
+          title: 'Academic Performance Expectations',
+          content: 'Students are expected to submit coursework on time. Late submissions will undergo scoring penalties.'
+        }
+      ]
+    };
+
+    this.syllabusService.createProfile(newSyllabus);
+    
+    this.newCourseCode = '';
+    this.newCourseTitle = '';
+    this.newCourseDesc = '';
+    this.newInstructorName = '';
+    this.newInstructorEmail = '';
+    this.showAddCourseModal = false;
+    this.expandedWeek = 1;
   }
 
   updateProgress(): void {

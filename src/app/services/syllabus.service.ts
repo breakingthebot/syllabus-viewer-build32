@@ -1,13 +1,19 @@
 // src/app/services/syllabus.service.ts
 // Handles syllabus state, default data seeding, localStorage I/O, search filters, and progress metrics.
+// Updated to support multiple course profiles.
 // Created: 2026-07-19
 
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { Syllabus, CheckedStates } from '../models/syllabus.model';
 
-const SYLLABUS_STORAGE_KEY = '@syllabus_viewer/syllabus';
-const CHECKED_STORAGE_KEY = '@syllabus_viewer/checked_states';
+export interface CourseProfile {
+  code: string;
+  title: string;
+}
+
+const PROFILES_LIST_KEY = '@syllabus_viewer/profiles';
+const ACTIVE_PROFILE_KEY = '@syllabus_viewer/active_profile';
 
 const DEFAULT_SYLLABUS: Syllabus = {
   title: 'Advanced Web Engineering',
@@ -123,39 +129,98 @@ const DEFAULT_SYLLABUS: Syllabus = {
 export class SyllabusService {
   private syllabusSubject: BehaviorSubject<Syllabus>;
   private checkedSubject: BehaviorSubject<CheckedStates>;
+  private profilesSubject = new BehaviorSubject<CourseProfile[]>([]);
+  private activeProfileCodeSubject = new BehaviorSubject<string>('');
 
   constructor() {
-    // Load or seed Syllabus
-    let storedSyllabus = DEFAULT_SYLLABUS;
+    // 1. Load profiles list
+    let profiles: CourseProfile[] = [];
     try {
-      const raw = localStorage.getItem(SYLLABUS_STORAGE_KEY);
-      if (raw) {
-        storedSyllabus = JSON.parse(raw);
-      } else {
-        localStorage.setItem(SYLLABUS_STORAGE_KEY, JSON.stringify(DEFAULT_SYLLABUS));
+      const rawProfiles = localStorage.getItem(PROFILES_LIST_KEY);
+      if (rawProfiles) {
+        profiles = JSON.parse(rawProfiles);
       }
     } catch (e) {
-      console.warn('LocalStorage not available, running in-memory.', e);
+      console.warn('Failed to load profiles from localStorage', e);
     }
-    this.syllabusSubject = new BehaviorSubject<Syllabus>(storedSyllabus);
 
-    // Load Checked States
-    const initialChecked: CheckedStates = { readings: {}, assignments: {} };
+    // 2. Load active profile code
+    let activeCode = '';
     try {
-      const rawChecked = localStorage.getItem(CHECKED_STORAGE_KEY);
+      const rawActive = localStorage.getItem(ACTIVE_PROFILE_KEY);
+      if (rawActive) {
+        activeCode = rawActive;
+      }
+    } catch (e) {
+      console.warn('Failed to load active profile code', e);
+    }
+
+    // Seed default if no profiles exist
+    if (profiles.length === 0) {
+      profiles = [{ code: DEFAULT_SYLLABUS.courseCode, title: DEFAULT_SYLLABUS.title }];
+      activeCode = DEFAULT_SYLLABUS.courseCode;
+      
+      try {
+        localStorage.setItem(PROFILES_LIST_KEY, JSON.stringify(profiles));
+        localStorage.setItem(ACTIVE_PROFILE_KEY, activeCode);
+        localStorage.setItem(this.getSyllabusKey(activeCode), JSON.stringify(DEFAULT_SYLLABUS));
+        localStorage.setItem(this.getCheckedKey(activeCode), JSON.stringify({ readings: {}, assignments: {} }));
+      } catch (e) {
+        console.warn('Failed to seed default profile data', e);
+      }
+    } else if (!activeCode || !profiles.some(p => p.code === activeCode)) {
+      activeCode = profiles[0].code;
+      try {
+        localStorage.setItem(ACTIVE_PROFILE_KEY, activeCode);
+      } catch (e) {
+        console.warn('Failed to save fallback active profile code', e);
+      }
+    }
+
+    this.profilesSubject.next(profiles);
+    this.activeProfileCodeSubject.next(activeCode);
+
+    // 3. Load active profile's syllabus
+    let activeSyllabus = DEFAULT_SYLLABUS;
+    try {
+      const rawSyllabus = localStorage.getItem(this.getSyllabusKey(activeCode));
+      if (rawSyllabus) {
+        activeSyllabus = JSON.parse(rawSyllabus);
+      } else {
+        localStorage.setItem(this.getSyllabusKey(activeCode), JSON.stringify(DEFAULT_SYLLABUS));
+      }
+    } catch (e) {
+      console.warn('Failed to load active syllabus data', e);
+    }
+    this.syllabusSubject = new BehaviorSubject<Syllabus>(activeSyllabus);
+
+    // 4. Load active profile's checked states
+    let activeChecked: CheckedStates = { readings: {}, assignments: {} };
+    try {
+      const rawChecked = localStorage.getItem(this.getCheckedKey(activeCode));
       if (rawChecked) {
         const parsed = JSON.parse(rawChecked);
-        initialChecked.readings = parsed.readings || {};
-        initialChecked.assignments = parsed.assignments || {};
+        activeChecked.readings = parsed.readings || {};
+        activeChecked.assignments = parsed.assignments || {};
       } else {
-        localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify(initialChecked));
+        localStorage.setItem(this.getCheckedKey(activeCode), JSON.stringify(activeChecked));
       }
     } catch (e) {
-      console.warn('LocalStorage not available for checked states.', e);
+      console.warn('Failed to load active checked states', e);
     }
-    this.checkedSubject = new BehaviorSubject<CheckedStates>(initialChecked);
+    this.checkedSubject = new BehaviorSubject<CheckedStates>(activeChecked);
   }
 
+  // Key generators
+  private getSyllabusKey(code: string): string {
+    return `@syllabus_viewer/syllabus_${code}`;
+  }
+
+  private getCheckedKey(code: string): string {
+    return `@syllabus_viewer/checked_states_${code}`;
+  }
+
+  // Core getters
   getSyllabus$(): Observable<Syllabus> {
     return this.syllabusSubject.asObservable();
   }
@@ -172,15 +237,153 @@ export class SyllabusService {
     return this.checkedSubject.getValue();
   }
 
-  updateSyllabus(newSyllabus: Syllabus): void {
-    try {
-      localStorage.setItem(SYLLABUS_STORAGE_KEY, JSON.stringify(newSyllabus));
-    } catch (e) {
-      console.error('Failed to write syllabus to localStorage', e);
-    }
-    this.syllabusSubject.next(newSyllabus);
+  getProfiles$(): Observable<CourseProfile[]> {
+    return this.profilesSubject.asObservable();
   }
 
+  getProfilesValue(): CourseProfile[] {
+    return this.profilesSubject.getValue();
+  }
+
+  getActiveProfileCode$(): Observable<string> {
+    return this.activeProfileCodeSubject.asObservable();
+  }
+
+  getActiveProfileCodeValue(): string {
+    return this.activeProfileCodeSubject.getValue();
+  }
+
+  // Switch profiles
+  switchProfile(code: string): void {
+    const profiles = this.profilesSubject.getValue();
+    if (!profiles.some(p => p.code === code)) return;
+
+    try {
+      localStorage.setItem(ACTIVE_PROFILE_KEY, code);
+    } catch (e) {
+      console.error('Failed to set active profile key', e);
+    }
+    this.activeProfileCodeSubject.next(code);
+
+    // Load active syllabus
+    let loadedSyllabus = DEFAULT_SYLLABUS;
+    try {
+      const rawSyllabus = localStorage.getItem(this.getSyllabusKey(code));
+      if (rawSyllabus) {
+        loadedSyllabus = JSON.parse(rawSyllabus);
+      }
+    } catch (e) {
+      console.error('Failed to load syllabus for profile ' + code, e);
+    }
+    this.syllabusSubject.next(loadedSyllabus);
+
+    // Load active checked states
+    let loadedChecked: CheckedStates = { readings: {}, assignments: {} };
+    try {
+      const rawChecked = localStorage.getItem(this.getCheckedKey(code));
+      if (rawChecked) {
+        const parsed = JSON.parse(rawChecked);
+        loadedChecked.readings = parsed.readings || {};
+        loadedChecked.assignments = parsed.assignments || {};
+      }
+    } catch (e) {
+      console.error('Failed to load checked states for profile ' + code, e);
+    }
+    this.checkedSubject.next(loadedChecked);
+  }
+
+  // Update current active syllabus
+  updateActiveSyllabus(syllabus: Syllabus): void {
+    const code = this.activeProfileCodeSubject.getValue();
+    try {
+      localStorage.setItem(this.getSyllabusKey(code), JSON.stringify(syllabus));
+    } catch (e) {
+      console.error('Failed to write syllabus data', e);
+    }
+    this.syllabusSubject.next(syllabus);
+
+    // Update course code mapping if name/code updated
+    const profiles = this.profilesSubject.getValue();
+    const updatedProfiles = profiles.map(p => {
+      if (p.code === code) {
+        return { code: syllabus.courseCode, title: syllabus.title };
+      }
+      return p;
+    });
+
+    // If courseCode was modified in JSON editor, swap storage keys
+    if (syllabus.courseCode !== code) {
+      try {
+        localStorage.setItem(this.getSyllabusKey(syllabus.courseCode), JSON.stringify(syllabus));
+        const checked = this.checkedSubject.getValue();
+        localStorage.setItem(this.getCheckedKey(syllabus.courseCode), JSON.stringify(checked));
+        localStorage.removeItem(this.getSyllabusKey(code));
+        localStorage.removeItem(this.getCheckedKey(code));
+        localStorage.setItem(ACTIVE_PROFILE_KEY, syllabus.courseCode);
+      } catch (e) {
+        console.error('Failed to rename storage keys for modified courseCode', e);
+      }
+      this.activeProfileCodeSubject.next(syllabus.courseCode);
+    }
+
+    this.saveProfilesList(updatedProfiles);
+  }
+
+  updateSyllabus(newSyllabus: Syllabus): void {
+    this.updateActiveSyllabus(newSyllabus);
+  }
+
+  // Create new profile
+  createProfile(syllabus: Syllabus): void {
+    const code = syllabus.courseCode;
+    const profiles = this.profilesSubject.getValue();
+
+    const filtered = profiles.filter(p => p.code !== code);
+    const updatedProfiles = [...filtered, { code, title: syllabus.title }];
+    
+    try {
+      localStorage.setItem(this.getSyllabusKey(code), JSON.stringify(syllabus));
+      localStorage.setItem(this.getCheckedKey(code), JSON.stringify({ readings: {}, assignments: {} }));
+    } catch (e) {
+      console.error('Failed to create storage slot for profile ' + code, e);
+    }
+
+    this.saveProfilesList(updatedProfiles);
+    this.switchProfile(code);
+  }
+
+  // Delete profile
+  deleteProfile(code: string): void {
+    const profiles = this.profilesSubject.getValue();
+    if (profiles.length <= 1) return;
+
+    const updatedProfiles = profiles.filter(p => p.code !== code);
+    
+    try {
+      localStorage.removeItem(this.getSyllabusKey(code));
+      localStorage.removeItem(this.getCheckedKey(code));
+    } catch (e) {
+      console.error('Failed to delete storage slots for profile ' + code, e);
+    }
+
+    this.saveProfilesList(updatedProfiles);
+
+    const activeCode = this.activeProfileCodeSubject.getValue();
+    if (activeCode === code) {
+      this.switchProfile(updatedProfiles[0].code);
+    }
+  }
+
+  private saveProfilesList(list: CourseProfile[]): void {
+    try {
+      localStorage.setItem(PROFILES_LIST_KEY, JSON.stringify(list));
+    } catch (e) {
+      console.error('Failed to save profiles list', e);
+    }
+    this.profilesSubject.next(list);
+  }
+
+  // Check state togglers
   toggleReading(weekNum: number, readingIndex: number): void {
     const key = `w${weekNum}-r${readingIndex}`;
     const current = this.checkedSubject.getValue();
@@ -205,8 +408,9 @@ export class SyllabusService {
   }
 
   private saveCheckedStates(states: CheckedStates): void {
+    const code = this.activeProfileCodeSubject.getValue();
     try {
-      localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify(states));
+      localStorage.setItem(this.getCheckedKey(code), JSON.stringify(states));
     } catch (e) {
       console.error('Failed to save checked states to localStorage', e);
     }
@@ -218,7 +422,6 @@ export class SyllabusService {
     let completed = 0;
 
     syllabus.schedule.forEach(module => {
-      // Readings count
       module.readings.forEach((_, idx) => {
         total++;
         const key = `w${module.week}-r${idx}`;
@@ -227,7 +430,6 @@ export class SyllabusService {
         }
       });
 
-      // Assignments count
       module.assignments.forEach(assign => {
         total++;
         const key = `w${module.week}-a-${assign.id}`;

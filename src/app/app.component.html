@@ -3,6 +3,38 @@
 <!-- Created: 2026-07-19 -->
 
 <div class="app-container">
+  <!-- Course Profiles Management Toolbar -->
+  <div class="profiles-toolbar shadow-sm">
+    <div class="profiles-left">
+      <label for="course-profile-selector" class="profile-label">📘 Active Course:</label>
+      <select 
+        id="course-profile-selector" 
+        [ngModel]="activeProfileCode" 
+        (ngModelChange)="switchProfile($event)" 
+        class="profile-select"
+      >
+        <option *ngFor="let prof of profiles" [value]="prof.code">
+          [{{ prof.code }}] {{ prof.title }}
+        </option>
+      </select>
+    </div>
+    
+    <div class="profiles-actions">
+      <button class="btn-action-add" (click)="showAddCourseModal = true" id="add-course-btn">
+        ➕ Add Course
+      </button>
+      <button 
+        class="btn-action-delete" 
+        (click)="deleteActiveProfile()" 
+        [disabled]="profiles.length <= 1"
+        title="Delete active course profile"
+        id="delete-course-btn"
+      >
+        🗑️ Delete
+      </button>
+    </div>
+  </div>
+
   <!-- Core Header Section -->
   <header class="course-header shadow-lg">
     <div class="header-overlay"></div>
@@ -296,5 +328,88 @@
   <!-- Simple Toast Notifications popup -->
   <div class="toast-popup" *ngIf="showResetToast" id="reset-toast">
     <span>✓ Progress checklist successfully reset!</span>
+  </div>
+
+  <!-- Add New Course Modal Popup -->
+  <div class="modal-overlay" *ngIf="showAddCourseModal" (click)="showAddCourseModal = false">
+    <div class="modal-card shadow-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>➕ Create New Course Profile</h2>
+        <button class="modal-close-btn" (click)="showAddCourseModal = false">✕</button>
+      </div>
+      
+      <form (submit)="createNewCourse(); $event.preventDefault()" class="modal-form">
+        <div class="form-group">
+          <label for="new-code-input">Course Code *</label>
+          <input 
+            type="text" 
+            id="new-code-input" 
+            [(ngModel)]="newCourseCode" 
+            name="newCourseCode"
+            placeholder="e.g. MATH-101" 
+            required 
+            class="form-control"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="new-title-input">Course Title *</label>
+          <input 
+            type="text" 
+            id="new-title-input" 
+            [(ngModel)]="newCourseTitle" 
+            name="newCourseTitle"
+            placeholder="e.g. Calculus I" 
+            required 
+            class="form-control"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="new-desc-input">Description</label>
+          <textarea 
+            id="new-desc-input" 
+            [(ngModel)]="newCourseDesc" 
+            name="newCourseDesc"
+            placeholder="Brief description of course goals..." 
+            class="form-control textarea-small"
+          ></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="new-instructor-input">Instructor Name</label>
+            <input 
+              type="text" 
+              id="new-instructor-input" 
+              [(ngModel)]="newInstructorName" 
+              name="newInstructorName"
+              placeholder="e.g. Prof. Smith" 
+              class="form-control"
+            />
+          </div>
+          <div class="form-group">
+            <label for="new-email-input">Instructor Email</label>
+            <input 
+              type="email" 
+              id="new-email-input" 
+              [(ngModel)]="newInstructorEmail" 
+              name="newInstructorEmail"
+              placeholder="e.g. smith@univ.edu" 
+              class="form-control"
+            />
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" (click)="showAddCourseModal = false">Cancel</button>
+          <button type="submit" class="btn-create" [disabled]="!newCourseCode.trim() || !newCourseTitle.trim()">
+            Create Course
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </div>
