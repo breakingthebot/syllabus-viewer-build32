@@ -1,0 +1,14 @@
+node_modules
+.angular
+dist
+tmp
+out-tsc
+bazel-out
+coverage
+AGENTS.md
+BUILD_NOTES.md
+.env
+.env.example
+.vercel
+.vscode
+.git

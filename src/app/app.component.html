@@ -1,0 +1,295 @@
+<!-- src/app/app.component.html -->
+<!-- Main user interface for the Academic Course Syllabus Viewer. -->
+<!-- Created: 2026-07-19 -->
+
+<div class="app-container">
+  <!-- Core Header Section -->
+  <header class="course-header shadow-lg">
+    <div class="header-overlay"></div>
+    <div class="header-content">
+      <div class="course-meta">
+        <span class="course-code-badge">{{ syllabus.courseCode }}</span>
+        <h1 class="course-title">{{ syllabus.title }}</h1>
+        <p class="course-desc">{{ syllabus.description }}</p>
+      </div>
+      
+      <!-- Instructor Glassmorphic Card -->
+      <div class="instructor-card" id="instructor-info-card">
+        <img [src]="syllabus.instructor.avatarUrl" alt="Avatar of {{ syllabus.instructor.name }}" class="instructor-avatar" />
+        <div class="instructor-details">
+          <h3>{{ syllabus.instructor.name }}</h3>
+          <p class="instructor-email">
+            <a href="mailto:{{ syllabus.instructor.email }}">✉️ {{ syllabus.instructor.email }}</a>
+          </p>
+          <p class="instructor-office">📍 {{ syllabus.instructor.office }}</p>
+          <p class="instructor-hours">🕒 Hours: {{ syllabus.instructor.officeHours }}</p>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Global Syllabus Progress Bar widget -->
+  <section class="progress-section shadow-md">
+    <div class="progress-header">
+      <h2>Syllabus Completion Progress</h2>
+      <span class="progress-count">{{ progress.completed }} of {{ progress.total }} tasks completed</span>
+    </div>
+    <div class="progress-bar-wrapper">
+      <div class="progress-bar-fill" [style.width.%]="progress.percentage"></div>
+    </div>
+    <div class="progress-footer">
+      <span class="progress-percentage">{{ progress.percentage }}% Done</span>
+      <button class="btn-reset" (click)="resetAllProgress()" *ngIf="progress.completed > 0" id="reset-progress-btn">
+        ↺ Reset Checked Progress
+      </button>
+    </div>
+  </section>
+
+  <!-- Navigation View Switcher Tabs -->
+  <nav class="navigation-tabs" role="tablist">
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'schedule'" 
+      (click)="switchTab('schedule')"
+      role="tab"
+      aria-controls="schedule-panel"
+      [attr.aria-selected]="activeTab === 'schedule'"
+      id="tab-schedule"
+    >
+      📅 Weekly Schedule
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'grading'" 
+      (click)="switchTab('grading')"
+      role="tab"
+      aria-controls="grading-panel"
+      [attr.aria-selected]="activeTab === 'grading'"
+      id="tab-grading"
+    >
+      📊 Grading & Policies
+    </button>
+    <button 
+      class="tab-btn" 
+      [class.active]="activeTab === 'editor'" 
+      (click)="switchTab('editor')"
+      role="tab"
+      aria-controls="editor-panel"
+      [attr.aria-selected]="activeTab === 'editor'"
+      id="tab-editor"
+    >
+      ✍️ JSON Syllabus Editor
+    </button>
+  </nav>
+
+  <!-- Main View Panels -->
+  <main class="panel-container">
+    
+    <!-- 📅 Weekly Schedule Panel -->
+    <div id="schedule-panel" class="tab-panel" *ngIf="activeTab === 'schedule'" role="tabpanel" aria-labelledby="tab-schedule">
+      <div class="search-filter-row">
+        <!-- Search bar -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchQuery" 
+            placeholder="Search topics, readings, or assignments..." 
+            class="search-input"
+            id="syllabus-search-input"
+            accessibilityLabel="Search syllabus schedule contents"
+          />
+          <button class="clear-search-btn" (click)="searchQuery = ''" *ngIf="searchQuery">✕</button>
+        </div>
+
+        <!-- Filter chips -->
+        <div class="filter-box">
+          <label for="type-filter-select">Show:</label>
+          <select id="type-filter-select" [(ngModel)]="filterType" class="filter-select">
+            <option value="all">📚 All Items</option>
+            <option value="readings">📖 Readings Only</option>
+            <option value="assignments">📝 Assignments Only</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Empty state -->
+      <div class="empty-state-card" *ngIf="filteredSchedule.length === 0">
+        <span class="empty-icon">📂</span>
+        <h3>No matching weeks found</h3>
+        <p>Try adjusting your search terms or filters.</p>
+      </div>
+
+      <!-- Accordion List of Weeks -->
+      <div class="weeks-list">
+        <div 
+          class="week-card shadow-sm" 
+          *ngFor="let module of filteredAndTypeScheduled"
+          [class.expanded]="expandedWeek === module.week"
+          [id]="'week-card-' + module.week"
+        >
+          <!-- Week Header (Clickable) -->
+          <div class="week-card-header" (click)="toggleWeek(module.week)">
+            <div class="week-title-col">
+              <span class="week-number">Week {{ module.week }}</span>
+              <h3 class="week-title">{{ module.title }}</h3>
+            </div>
+            
+            <div class="week-header-actions">
+              <!-- Week Completion badge -->
+              <span class="week-completion-badge" [class.completed]="getWeekCompletion(module) === 100">
+                {{ getWeekCompletion(module) }}% done
+              </span>
+              <span class="accordion-arrow">{{ expandedWeek === module.week ? '▲' : '▼' }}</span>
+            </div>
+          </div>
+
+          <!-- Week Content Body (Visible if expanded) -->
+          <div class="week-card-body" *ngIf="expandedWeek === module.week">
+            <p class="week-desc">{{ module.description }}</p>
+
+            <div class="week-grids">
+              <!-- Readings checklist -->
+              <div class="grid-column" *ngIf="module.readings.length > 0">
+                <h4>📖 Required Readings</h4>
+                <div class="checklist-items">
+                  <label 
+                    class="check-item-label" 
+                    *ngFor="let reading of module.readings; let idx = index"
+                    [class.checked]="checkedStates.readings['w' + module.week + '-r' + idx]"
+                  >
+                    <input 
+                      type="checkbox" 
+                      [checked]="checkedStates.readings['w' + module.week + '-r' + idx]" 
+                      (change)="toggleReading(module.week, idx)"
+                      class="check-input"
+                    />
+                    <span class="checkmark"></span>
+                    <span class="item-text">{{ reading }}</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- Assignments checklist -->
+              <div class="grid-column" *ngIf="module.assignments.length > 0">
+                <h4>📝 Deliverables & Tasks</h4>
+                <div class="checklist-items">
+                  <label 
+                    class="check-item-label" 
+                    *ngFor="let assign of module.assignments"
+                    [class.checked]="checkedStates.assignments['w' + module.week + '-a-' + assign.id]"
+                  >
+                    <input 
+                      type="checkbox" 
+                      [checked]="checkedStates.assignments['w' + module.week + '-a-' + assign.id]" 
+                      (change)="toggleAssignment(module.week, assign.id)"
+                      class="check-input"
+                    />
+                    <span class="checkmark"></span>
+                    <div class="item-text-container">
+                      <span class="item-text font-bold">{{ assign.label }}</span>
+                      <span class="item-due">📅 Due: {{ assign.dueDate }}</span>
+                    </div>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📊 Grading & Policies Panel -->
+    <div id="grading-panel" class="tab-panel" *ngIf="activeTab === 'grading'" role="tabpanel" aria-labelledby="tab-grading">
+      <div class="grading-policies-grid">
+        <!-- Grading breakdown (Left Column) -->
+        <div class="grading-column shadow-sm">
+          <h2>📊 Grading Weight Distribution</h2>
+          <p class="section-intro">Your final grade will be aggregated based on the following course components weighting:</p>
+          
+          <div class="grading-list">
+            <div class="grading-item-row" *ngFor="let item of syllabus.grading">
+              <div class="grading-meta-row">
+                <span class="grading-label">{{ item.label }}</span>
+                <span class="grading-weight">{{ item.weightPercentage }}%</span>
+              </div>
+              <div class="grading-progress-track">
+                <div class="grading-progress-bar" [style.width.%]="item.weightPercentage"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Policies & Instructions (Right Column) -->
+        <div class="policies-column">
+          <div class="policy-card shadow-sm" *ngFor="let policy of syllabus.policies">
+            <h3>⚖️ {{ policy.title }}</h3>
+            <p>{{ policy.content }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✍️ JSON Syllabus Editor Panel -->
+    <div id="editor-panel" class="tab-panel" *ngIf="activeTab === 'editor'" role="tabpanel" aria-labelledby="tab-editor">
+      <div class="editor-layout shadow-sm">
+        <div class="editor-header">
+          <h2>✍️ Edit Syllabus JSON Payload</h2>
+          <p>Modify the JSON below to dynamically customize the syllabus details, schedule structure, readings, or grading items.</p>
+        </div>
+
+        <!-- Real-time JSON validation alert banner -->
+        <div class="validation-banner error" *ngIf="jsonError">
+          <span class="validation-icon">⚠️</span>
+          <div class="validation-details">
+            <h4>JSON Parsing Error</h4>
+            <p>{{ jsonError }}</p>
+          </div>
+        </div>
+
+        <div class="validation-banner success" *ngIf="!jsonError">
+          <span class="validation-icon">✓</span>
+          <div class="validation-details">
+            <h4>JSON Syntax Valid</h4>
+            <p>Ready to update active course layout.</p>
+          </div>
+        </div>
+
+        <div class="textarea-wrapper">
+          <textarea 
+            [(ngModel)]="editorJson" 
+            (ngModelChange)="validateJson()" 
+            class="json-textarea"
+            placeholder="Paste syllabus JSON here..."
+            id="syllabus-json-textarea"
+            accessibilityLabel="Syllabus JSON editor field"
+          ></textarea>
+        </div>
+
+        <div class="editor-actions">
+          <button 
+            class="btn-save" 
+            [disabled]="!!jsonError" 
+            (click)="applySyllabusJson()"
+            id="apply-json-btn"
+          >
+            ✓ Apply & Update Syllabus
+          </button>
+          <button 
+            class="btn-reset-default" 
+            (click)="resetSyllabusToDefault()"
+            id="reset-default-syllabus-btn"
+          >
+            ↺ Reset to Default Syllabus
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Simple Toast Notifications popup -->
+  <div class="toast-popup" *ngIf="showResetToast" id="reset-toast">
+    <span>✓ Progress checklist successfully reset!</span>
+  </div>
+</div>
