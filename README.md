@@ -2,6 +2,9 @@
 
 A premium, interactive, and structured academic course syllabus viewer built with Angular 19. It helps students track weekly required readings, assignment deadlines, course metrics, and policies, with support for live syllabus customization via a raw JSON payload editor.
 
+### Topics
+`angular` `syllabus-viewer` `course-tracker` `typescript` `localstorage` `dark-theme` `json-validation` `rxjs` `jasmine-unit-testing`
+
 ## Stack
 - **Framework**: Angular 19 (Standalone architecture)
 - **Styling**: Vanilla CSS (Premium Dark theme, Outfit & Inter typography, glassmorphic gradients)
