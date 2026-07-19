@@ -848,3 +848,225 @@
     opacity: 1;
   }
 }
+
+/* Progress Action buttons group */
+.action-buttons-group {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.btn-print {
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: background-color var(--transition-fast);
+}
+
+.btn-print:hover {
+  background-color: var(--color-primary-hover);
+}
+
+/* Hidden elements on screen */
+.week-card-body.hidden-screen {
+  display: none;
+}
+
+/* Print Specific overrides Styles */
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+  }
+
+  .app-container {
+    padding: 0 !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    gap: 20px !important;
+  }
+
+  /* Hide interactive controls */
+  .navigation-tabs,
+  .search-filter-row,
+  .action-buttons-group,
+  .accordion-arrow,
+  .editor-actions,
+  .textarea-wrapper,
+  .validation-banner,
+  .toast-popup,
+  #tab-schedule,
+  #tab-grading,
+  #tab-editor {
+    display: none !important;
+  }
+
+  /* Force display schedule layout as printable document */
+  .tab-panel {
+    display: block !important;
+  }
+
+  .course-header {
+    background: #f3f4f6 !important;
+    color: #111827 !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: var(--radius-md) !important;
+    box-shadow: none !important;
+  }
+
+  .header-overlay {
+    display: none !important;
+  }
+
+  .course-code-badge {
+    background-color: #312e81 !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .course-title {
+    color: #111827 !important;
+  }
+
+  .course-desc {
+    color: #374151 !important;
+  }
+
+  .instructor-card {
+    background: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+    box-shadow: none !important;
+  }
+
+  .instructor-avatar {
+    border-color: #312e81 !important;
+    box-shadow: none !important;
+  }
+
+  /* Progress section print style */
+  .progress-section {
+    background-color: #f9fafb !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: none !important;
+  }
+
+  .progress-header h2 {
+    color: #111827 !important;
+  }
+
+  .progress-bar-wrapper {
+    background-color: #e5e7eb !important;
+    border: 1px solid #d1d5db !important;
+  }
+
+  .progress-bar-fill {
+    background: #312e81 !important;
+    box-shadow: none !important;
+  }
+
+  /* Week accordion elements forced expand */
+  .week-card {
+    background-color: #ffffff !important;
+    border: 1px solid #d1d5db !important;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  .week-card-header {
+    cursor: default !important;
+    background-color: #f9fafb !important;
+    border-bottom: 1px solid #e5e7eb !important;
+  }
+
+  .week-card-header:hover {
+    background-color: #f9fafb !important;
+  }
+
+  .week-number {
+    background-color: #e5e7eb !important;
+    color: #1e1b4b !important;
+  }
+
+  .week-title {
+    color: #111827 !important;
+  }
+
+  /* Expand week body */
+  .week-card-body {
+    display: flex !important;
+    padding: 20px !important;
+    background-color: #ffffff !important;
+    border-top: none !important;
+  }
+
+  .week-card-body.hidden-screen {
+    display: flex !important;
+  }
+
+  .week-desc {
+    color: #374151 !important;
+    margin-top: 0 !important;
+    margin-bottom: 10px !important;
+  }
+
+  /* Checklist columns layout */
+  .week-grids {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 20px !important;
+  }
+
+  .grid-column h4 {
+    color: #111827 !important;
+    border-bottom: 1px solid #d1d5db !important;
+  }
+
+  .check-item-label {
+    background-color: #ffffff !important;
+    border: 1px solid #e5e7eb !important;
+    color: #111827 !important;
+    opacity: 1 !important;
+  }
+
+  .check-item-label.checked {
+    background-color: #f3f4f6 !important;
+    border-color: #d1d5db !important;
+  }
+
+  .checkmark {
+    border-color: #9ca3af !important;
+    background-color: #ffffff !important;
+  }
+
+  .check-input:checked ~ .checkmark {
+    background-color: #312e81 !important;
+    border-color: #312e81 !important;
+  }
+
+  .check-input:checked ~ .checkmark:after {
+    border-color: #ffffff !important;
+  }
+
+  .item-text {
+    color: #111827 !important;
+  }
+
+  .check-item-label.checked .item-text {
+    color: #6b7280 !important;
+    text-decoration: line-through !important;
+  }
+
+  .item-due {
+    color: #b45309 !important;
+  }
+}
+

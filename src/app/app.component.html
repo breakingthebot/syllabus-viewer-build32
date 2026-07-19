@@ -39,9 +39,14 @@
     </div>
     <div class="progress-footer">
       <span class="progress-percentage">{{ progress.percentage }}% Done</span>
-      <button class="btn-reset" (click)="resetAllProgress()" *ngIf="progress.completed > 0" id="reset-progress-btn">
-        ↺ Reset Checked Progress
-      </button>
+      <div class="action-buttons-group">
+        <button class="btn-print" (click)="printSyllabus()" id="print-syllabus-btn">
+          🖨️ Export / Print PDF
+        </button>
+        <button class="btn-reset" (click)="resetAllProgress()" *ngIf="progress.completed > 0" id="reset-progress-btn">
+          ↺ Reset Checked Progress
+        </button>
+      </div>
     </div>
   </section>
 
@@ -144,8 +149,8 @@
             </div>
           </div>
 
-          <!-- Week Content Body (Visible if expanded) -->
-          <div class="week-card-body" *ngIf="expandedWeek === module.week">
+          <!-- Week Content Body (Visible if expanded, always visible in print) -->
+          <div class="week-card-body" [class.hidden-screen]="expandedWeek !== module.week">
             <p class="week-desc">{{ module.description }}</p>
 
             <div class="week-grids">

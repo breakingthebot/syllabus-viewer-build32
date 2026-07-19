@@ -86,6 +86,10 @@ export class AppComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
+  printSyllabus(): void {
+    window.print();
+  }
+
   updateProgress(): void {
     if (this.syllabus && this.checkedStates) {
       this.progress = this.syllabusService.getProgressMetrics(this.syllabus, this.checkedStates);

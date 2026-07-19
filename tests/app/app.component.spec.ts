@@ -3,7 +3,7 @@
 // Created: 2026-07-19
 
 import { TestBed } from '@angular/core/testing';
-import { AppComponent } from './app.component';
+import { AppComponent } from '../../src/app/app.component';
 
 describe('AppComponent', () => {
   beforeEach(async () => {

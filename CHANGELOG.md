@@ -17,4 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - LocalStorage persistency for checked states.
   - Live JSON editor with real-time validation alerting of parser errors.
   - Universal progress bar showing percentage and complete items count.
+  - Print/Export-to-PDF dashboard trigger that calls the browser printing view.
+  - Custom CSS print layout `@media print` rules, which expand all weekly modules, apply high-contrast colors, omit navigation bars/search interfaces, and prevent split layouts using `break-inside: avoid`.
 - Added Jest/Karma unit tests in `tests/` directory verifying state updates, completions, and layout titles.
+
