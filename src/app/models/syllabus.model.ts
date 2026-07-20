@@ -58,3 +58,14 @@ export interface GradeItem {
 export interface CategoryGrades {
   [categoryLabel: string]: GradeItem[];
 }
+
+export interface StudySession {
+  id: string;
+  assignmentId: string;
+  assignmentLabel: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  notes: string;
+  completed: boolean;
+}

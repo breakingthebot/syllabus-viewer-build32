@@ -2171,4 +2171,281 @@
   background-color: var(--color-primary-hover);
 }
 
+/* 📅 Study Planner & Scheduler layouts */
+.planner-layout-grid {
+  display: flex;
+  gap: 24px;
+}
+
+@media (max-width: 900px) {
+  .planner-layout-grid {
+    flex-direction: column;
+  }
+}
+
+.planner-form-card {
+  flex: 1;
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 24px;
+}
+
+.planner-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.form-group-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group-block label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.form-select-field {
+  padding: 10px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.form-select-field:focus {
+  border-color: var(--color-primary);
+}
+
+.form-input-field {
+  padding: 10px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+  width: 100%;
+}
+
+.form-input-field:focus {
+  border-color: var(--color-primary);
+}
+
+.form-textarea-field {
+  padding: 10px 12px;
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  min-height: 100px;
+  resize: vertical;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.form-textarea-field:focus {
+  border-color: var(--color-primary);
+}
+
+.form-datetime-row {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-schedule-submit {
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-schedule-submit:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+/* Timeline display */
+.planner-sessions-column {
+  flex: 1.2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.planner-empty-state {
+  background-color: var(--surface-primary);
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.planner-empty-state .empty-icon {
+  font-size: 2.5rem;
+}
+
+.planner-empty-state h3 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.planner-empty-state p {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 280px;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.sessions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.session-schedule-card {
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: border-color var(--transition-fast);
+}
+
+.session-schedule-card.completed {
+  border-color: rgba(16, 185, 129, 0.3);
+  background-color: rgba(16, 185, 129, 0.02);
+}
+
+.session-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.session-countdown-badge {
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background-color: var(--surface-secondary);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  display: inline-block;
+}
+
+.session-countdown-badge.active-now {
+  background-color: rgba(56, 189, 248, 0.1);
+  color: var(--color-accent);
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.15);
+}
+
+.session-countdown-badge.scheduled-today {
+  background-color: rgba(251, 191, 36, 0.1);
+  color: #f59e0b;
+}
+
+.session-countdown-badge.completed {
+  background-color: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.session-assignment-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+.btn-delete-session {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-size: 0.9rem;
+  opacity: 0.5;
+  padding: 2px;
+  transition: opacity var(--transition-fast), color var(--transition-fast);
+}
+
+.btn-delete-session:hover {
+  opacity: 1;
+  color: #ef4444;
+}
+
+.session-card-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.session-notes-text {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin: 4px 0 0 0;
+  line-height: 1.4;
+}
+
+.session-card-footer {
+  border-top: 1px solid var(--border-color);
+  padding-top: 12px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-mark-session-complete {
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-mark-session-complete:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-mark-session-complete.completed {
+  border-color: #10b981;
+  color: #10b981;
+  background-color: rgba(16, 185, 129, 0.05);
+}
+
 

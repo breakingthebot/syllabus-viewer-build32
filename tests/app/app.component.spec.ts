@@ -4,6 +4,7 @@
 
 import { TestBed } from '@angular/core/testing';
 import { AppComponent } from '../../src/app/app.component';
+import { StudySession } from '../../src/app/models/syllabus.model';
 
 describe('AppComponent', () => {
   beforeEach(async () => {
@@ -158,5 +159,49 @@ describe('AppComponent', () => {
     expect(app.getLetterGrade(71)).toBe('C-');
     expect(app.getLetterGrade(65)).toBe('D');
     expect(app.getLetterGrade(50)).toBe('F');
+  });
+
+  it('should compile flat schedulable assignments list', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const list = app.getSchedulableAssignments();
+    expect(list.length).toBeGreaterThan(0);
+    expect(list[0].id).toBeDefined();
+    expect(list[0].label).toContain('[W1]');
+  });
+
+  it('should correctly determine study session statuses', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    const completedSession: StudySession = {
+      id: 's1',
+      assignmentId: 'a1',
+      assignmentLabel: 'Task 1',
+      date: todayStr,
+      startTime: '10:00',
+      endTime: '12:00',
+      notes: '',
+      completed: true
+    };
+    expect(app.getSessionStatus(completedSession)).toBe('✓ Completed');
+
+    const expiredSession: StudySession = {
+      id: 's2',
+      assignmentId: 'a1',
+      assignmentLabel: 'Task 1',
+      date: '2020-01-01',
+      startTime: '10:00',
+      endTime: '12:00',
+      notes: '',
+      completed: false
+    };
+    expect(app.getSessionStatus(expiredSession)).toBe('Expired');
   });
 });

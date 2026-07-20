@@ -111,6 +111,17 @@
     </button>
     <button 
       class="tab-btn" 
+      [class.active]="activeTab === 'planner'" 
+      (click)="switchTab('planner')"
+      role="tab"
+      aria-controls="planner-panel"
+      [attr.aria-selected]="activeTab === 'planner'"
+      id="tab-planner"
+    >
+      📅 Study Planner
+    </button>
+    <button 
+      class="tab-btn" 
       [class.active]="activeTab === 'editor'" 
       (click)="switchTab('editor')"
       role="tab"
@@ -455,6 +466,143 @@
           <div class="policy-card shadow-sm" *ngFor="let policy of syllabus.policies">
             <h3>⚖️ {{ policy.title }}</h3>
             <p>{{ policy.content }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 📅 Study Planner & Scheduler Panel -->
+    <div id="planner-panel" class="tab-panel" *ngIf="activeTab === 'planner'" role="tabpanel" aria-labelledby="tab-planner">
+      <div class="planner-layout-grid">
+        <!-- Add Session Form (Left Column) -->
+        <div class="planner-form-card shadow-sm">
+          <h2>📅 Schedule Study Session</h2>
+          <p class="section-intro">Reserve dedicated slots in your weekly schedule to work on specific syllabus assignments.</p>
+
+          <form (submit)="scheduleSession(); $event.preventDefault();" class="planner-form">
+            <div class="form-group-block">
+              <label for="sched-assignment">Select Assignment / Task:</label>
+              <select 
+                [(ngModel)]="selectedSchedAssignmentId" 
+                name="schedAssignment" 
+                id="sched-assignment"
+                class="form-select-field"
+                required
+              >
+                <option value="" disabled selected>-- Choose an assignment --</option>
+                <option *ngFor="let assign of getSchedulableAssignments()" [value]="assign.id">
+                  {{ assign.label }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-datetime-row">
+              <div class="form-group-block flex-1">
+                <label for="sched-date">Date:</label>
+                <input 
+                  type="date" 
+                  [(ngModel)]="sessionSchedDate" 
+                  name="schedDate" 
+                  id="sched-date"
+                  class="form-input-field"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-datetime-row">
+              <div class="form-group-block flex-1">
+                <label for="sched-start">Start Time:</label>
+                <input 
+                  type="time" 
+                  [(ngModel)]="sessionSchedStartTime" 
+                  name="schedStartTime" 
+                  id="sched-start"
+                  class="form-input-field"
+                  required
+                />
+              </div>
+
+              <div class="form-group-block flex-1">
+                <label for="sched-end">End Time:</label>
+                <input 
+                  type="time" 
+                  [(ngModel)]="sessionSchedEndTime" 
+                  name="schedEndTime" 
+                  id="sched-end"
+                  class="form-input-field"
+                  required
+                />
+              </div>
+            </div>
+
+            <div class="form-group-block">
+              <label for="sched-notes">Study Notes / Goals:</label>
+              <textarea 
+                [(ngModel)]="sessionSchedNotes" 
+                name="schedNotes" 
+                id="sched-notes"
+                placeholder="e.g. Read chapter 3 first, complete layout components..."
+                class="form-textarea-field"
+              ></textarea>
+            </div>
+
+            <button type="submit" class="btn-schedule-submit">
+              📅 Add to Study Schedule
+            </button>
+          </form>
+        </div>
+
+        <!-- Scheduled Sessions Timeline View (Right Column) -->
+        <div class="planner-sessions-column">
+          <h2>⏰ Your Study Timeline</h2>
+          
+          <!-- Empty State -->
+          <div class="planner-empty-state shadow-sm" *ngIf="studySessions.length === 0">
+            <span class="empty-icon">📅</span>
+            <h3>No sessions scheduled</h3>
+            <p>Select a task on the left to block out study hours and manage your workload.</p>
+          </div>
+
+          <!-- Chronological list of sessions -->
+          <div class="sessions-list" *ngIf="studySessions.length > 0">
+            <div 
+              class="session-schedule-card shadow-sm" 
+              *ngFor="let session of studySessions"
+              [class.completed]="session.completed"
+            >
+              <div class="session-card-header">
+                <div>
+                  <span class="session-countdown-badge" [class.completed]="session.completed" [ngClass]="getSessionStatus(session).toLowerCase().replace(' ', '-')">
+                    {{ getSessionStatus(session) }}
+                  </span>
+                  <h3 class="session-assignment-title">{{ session.assignmentLabel }}</h3>
+                </div>
+                <button class="btn-delete-session" (click)="deleteSession(session.id)" aria-label="Cancel session">✕</button>
+              </div>
+
+              <div class="session-card-details">
+                <div class="detail-row">
+                  <span>📅</span> {{ session.date | date:'EEEE, MMM d, y' }}
+                </div>
+                <div class="detail-row">
+                  <span>⏱️</span> {{ session.startTime }} - {{ session.endTime }}
+                </div>
+                <p class="session-notes-text" *ngIf="session.notes">
+                  <strong>Notes:</strong> {{ session.notes }}
+                </p>
+              </div>
+
+              <div class="session-card-footer">
+                <button 
+                  class="btn-mark-session-complete" 
+                  [class.completed]="session.completed" 
+                  (click)="toggleSessionCompletion(session.id)"
+                >
+                  {{ session.completed ? '✓ Study Block Completed' : 'Mark Study Block Complete' }}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

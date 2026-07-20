@@ -5,7 +5,7 @@
 
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Syllabus, CheckedStates, CategoryGrades, GradeItem } from '../models/syllabus.model';
+import { Syllabus, CheckedStates, CategoryGrades, GradeItem, StudySession } from '../models/syllabus.model';
 
 export interface CourseProfile {
   code: string;
@@ -130,6 +130,7 @@ export class SyllabusService {
   private syllabusSubject: BehaviorSubject<Syllabus>;
   private checkedSubject: BehaviorSubject<CheckedStates>;
   private gradesSubject!: BehaviorSubject<CategoryGrades>;
+  private sessionsSubject!: BehaviorSubject<StudySession[]>;
   private profilesSubject = new BehaviorSubject<CourseProfile[]>([]);
   private activeProfileCodeSubject = new BehaviorSubject<string>('');
 
@@ -224,6 +225,20 @@ export class SyllabusService {
       console.warn('Failed to load active grades', e);
     }
     this.gradesSubject = new BehaviorSubject<CategoryGrades>(activeGrades);
+
+    // 6. Load active profile's study sessions
+    let activeSessions: StudySession[] = [];
+    try {
+      const rawSessions = localStorage.getItem(this.getSessionsKey(activeCode));
+      if (rawSessions) {
+        activeSessions = JSON.parse(rawSessions);
+      } else {
+        localStorage.setItem(this.getSessionsKey(activeCode), JSON.stringify(activeSessions));
+      }
+    } catch (e) {
+      console.warn('Failed to load active study sessions', e);
+    }
+    this.sessionsSubject = new BehaviorSubject<StudySession[]>(activeSessions);
   }
 
   // Key generators
@@ -237,6 +252,10 @@ export class SyllabusService {
 
   private getGradesKey(code: string): string {
     return `@syllabus_viewer/grades_${code}`;
+  }
+
+  private getSessionsKey(code: string): string {
+    return `@syllabus_viewer/study_sessions_${code}`;
   }
 
   // Core getters
@@ -254,6 +273,10 @@ export class SyllabusService {
 
   getGrades$(): Observable<CategoryGrades> {
     return this.gradesSubject.asObservable();
+  }
+
+  getSessions$(): Observable<StudySession[]> {
+    return this.sessionsSubject.asObservable();
   }
 
   getCheckedStatesValue(): CheckedStates {
@@ -325,6 +348,18 @@ export class SyllabusService {
       console.error('Failed to load grades for profile ' + code, e);
     }
     this.gradesSubject.next(loadedGrades);
+
+    // Load active study sessions
+    let loadedSessions: StudySession[] = [];
+    try {
+      const rawSessions = localStorage.getItem(this.getSessionsKey(code));
+      if (rawSessions) {
+        loadedSessions = JSON.parse(rawSessions);
+      }
+    } catch (e) {
+      console.error('Failed to load study sessions for profile ' + code, e);
+    }
+    this.sessionsSubject.next(loadedSessions);
   }
 
   // Update current active syllabus
@@ -356,9 +391,13 @@ export class SyllabusService {
         const grades = this.gradesSubject.getValue();
         localStorage.setItem(this.getGradesKey(syllabus.courseCode), JSON.stringify(grades));
 
+        const sessions = this.sessionsSubject.getValue();
+        localStorage.setItem(this.getSessionsKey(syllabus.courseCode), JSON.stringify(sessions));
+
         localStorage.removeItem(this.getSyllabusKey(code));
         localStorage.removeItem(this.getCheckedKey(code));
         localStorage.removeItem(this.getGradesKey(code));
+        localStorage.removeItem(this.getSessionsKey(code));
         localStorage.setItem(ACTIVE_PROFILE_KEY, syllabus.courseCode);
       } catch (e) {
         console.error('Failed to rename storage keys for modified courseCode', e);
@@ -385,6 +424,7 @@ export class SyllabusService {
       localStorage.setItem(this.getSyllabusKey(code), JSON.stringify(syllabus));
       localStorage.setItem(this.getCheckedKey(code), JSON.stringify({ readings: {}, assignments: {} }));
       localStorage.setItem(this.getGradesKey(code), JSON.stringify({}));
+      localStorage.setItem(this.getSessionsKey(code), JSON.stringify([]));
     } catch (e) {
       console.error('Failed to create storage slot for profile ' + code, e);
     }
@@ -404,6 +444,7 @@ export class SyllabusService {
       localStorage.removeItem(this.getSyllabusKey(code));
       localStorage.removeItem(this.getCheckedKey(code));
       localStorage.removeItem(this.getGradesKey(code));
+      localStorage.removeItem(this.getSessionsKey(code));
     } catch (e) {
       console.error('Failed to delete storage slots for profile ' + code, e);
     }
@@ -525,5 +566,48 @@ export class SyllabusService {
       console.error('Failed to save grades to localStorage', e);
     }
     this.gradesSubject.next(grades);
+  }
+
+  addStudySession(assignmentId: string, assignmentLabel: string, date: string, startTime: string, endTime: string, notes: string): void {
+    const current = this.sessionsSubject.getValue();
+    const newSession: StudySession = {
+      id: 's_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      assignmentId,
+      assignmentLabel,
+      date,
+      startTime,
+      endTime,
+      notes: notes.trim(),
+      completed: false
+    };
+    const updated = [...current, newSession];
+    this.saveSessions(updated);
+  }
+
+  toggleStudySessionCompletion(id: string): void {
+    const current = this.sessionsSubject.getValue();
+    const updated = current.map(s => {
+      if (s.id === id) {
+        return { ...s, completed: !s.completed };
+      }
+      return s;
+    });
+    this.saveSessions(updated);
+  }
+
+  deleteStudySession(id: string): void {
+    const current = this.sessionsSubject.getValue();
+    const updated = current.filter(s => s.id !== id);
+    this.saveSessions(updated);
+  }
+
+  private saveSessions(sessions: StudySession[]): void {
+    const code = this.activeProfileCodeSubject.getValue();
+    try {
+      localStorage.setItem(this.getSessionsKey(code), JSON.stringify(sessions));
+    } catch (e) {
+      console.error('Failed to save study sessions to localStorage', e);
+    }
+    this.sessionsSubject.next(sessions);
   }
 }

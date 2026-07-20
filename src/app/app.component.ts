@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SyllabusService } from './services/syllabus.service';
-import { Syllabus, CheckedStates, WeeklyModule, CategoryGrades, GradeItem } from './models/syllabus.model';
+import { Syllabus, CheckedStates, WeeklyModule, CategoryGrades, GradeItem, StudySession } from './models/syllabus.model';
 
 @Component({
   selector: 'app-root',
@@ -22,7 +22,7 @@ export class AppComponent implements OnInit, OnDestroy {
   profiles: any[] = [];
   activeProfileCode: string = '';
   
-  activeTab: 'schedule' | 'grading' | 'editor' = 'schedule';
+  activeTab: 'schedule' | 'grading' | 'planner' | 'editor' = 'schedule';
   searchQuery: string = '';
   filterType: 'all' | 'readings' | 'assignments' = 'all';
   expandedWeek: number | null = 1;
@@ -63,6 +63,14 @@ export class AppComponent implements OnInit, OnDestroy {
   showAddGradeForm: { [category: string]: boolean } = {};
   newGradeLabel: string = '';
   newGradeScore: number = 100;
+
+  // Study Planner properties
+  studySessions: StudySession[] = [];
+  selectedSchedAssignmentId: string = '';
+  sessionSchedDate: string = '';
+  sessionSchedStartTime: string = '14:00';
+  sessionSchedEndTime: string = '16:00';
+  sessionSchedNotes: string = '';
 
   private subs = new Subscription();
 
@@ -112,13 +120,20 @@ export class AppComponent implements OnInit, OnDestroy {
         this.calculateGradeProjections();
       })
     );
+
+    // Subscribe to Study Sessions updates
+    this.subs.add(
+      this.syllabusService.getSessions$().subscribe(sessions => {
+        this.studySessions = sessions;
+      })
+    );
   }
 
   ngOnDestroy(): void {
     this.subs.unsubscribe();
   }
 
-  switchTab(tab: 'schedule' | 'grading' | 'editor'): void {
+  switchTab(tab: 'schedule' | 'grading' | 'planner' | 'editor'): void {
     this.activeTab = tab;
   }
 
@@ -440,6 +455,73 @@ export class AppComponent implements OnInit, OnDestroy {
     if (list.length === 0) return 0;
     const avg = list.reduce((sum, g) => sum + g.score, 0) / list.length;
     return Math.round(avg * 10) / 10;
+  }
+
+  getSchedulableAssignments(): any[] {
+    if (!this.syllabus || !this.syllabus.schedule) return [];
+    const list: any[] = [];
+    this.syllabus.schedule.forEach(module => {
+      module.assignments?.forEach(assign => {
+        list.push({
+          id: assign.id,
+          label: `[W${module.week}] ${assign.label}`
+        });
+      });
+    });
+    return list;
+  }
+
+  scheduleSession(): void {
+    if (!this.selectedSchedAssignmentId || !this.sessionSchedDate) return;
+    
+    const all = this.getSchedulableAssignments();
+    const match = all.find(a => a.id === this.selectedSchedAssignmentId);
+    const label = match ? match.label : 'Study Session';
+
+    this.syllabusService.addStudySession(
+      this.selectedSchedAssignmentId,
+      label,
+      this.sessionSchedDate,
+      this.sessionSchedStartTime,
+      this.sessionSchedEndTime,
+      this.sessionSchedNotes
+    );
+
+    this.selectedSchedAssignmentId = '';
+    this.sessionSchedDate = '';
+    this.sessionSchedNotes = '';
+  }
+
+  deleteSession(id: string): void {
+    this.syllabusService.deleteStudySession(id);
+  }
+
+  toggleSessionCompletion(id: string): void {
+    this.syllabusService.toggleStudySessionCompletion(id);
+  }
+
+  getSessionStatus(session: StudySession): string {
+    if (session.completed) return '✓ Completed';
+
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    
+    if (session.date < todayStr) {
+      return 'Expired';
+    } else if (session.date === todayStr) {
+      const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      if (timeNow >= session.startTime && timeNow <= session.endTime) {
+        return '⚡ Active Now';
+      } else if (timeNow > session.endTime) {
+        return 'Ended';
+      } else {
+        return 'Scheduled Today';
+      }
+    } else {
+      const diffTime = Math.abs(new Date(session.date).getTime() - new Date(todayStr).getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      return `Starts in ${diffDays}d`;
+    }
   }
 
   switchProfile(code: string): void {
