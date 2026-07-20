@@ -22,5 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Multiple Course Syllabus Profiles, enabling students to switch between multiple classes (e.g. CS-301, MATH-101), add new course profiles, and delete selected profiles.
   - Interactive profile dialog popover modal to enter new course metadata (course code, title, instructor name/email).
   - Calendar Integration (.ics file export) button in progress footer, generating standard-compliant calendar event files for all assignments and week topics.
-- Added Jest/Karma unit tests in `tests/` directory verifying state updates, completions, layout titles, profile operations, and calendar date parsing.
+  - Due date countdown badges next to assignments, color-coding and showing dynamically calculated states ('Due today', 'Due tomorrow', 'Due in X days', 'Overdue by X days', and 'Done').
+  - Global Upcoming Deliverable Deadlines alert block above the weekly schedule grid, listing unchecked deliverables in the near future.
+- Added Jest/Karma unit tests in `tests/` directory verifying state updates, completions, layout titles, profile operations, calendar date parsing, and due date difference maths.
 

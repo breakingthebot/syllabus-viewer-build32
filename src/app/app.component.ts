@@ -39,6 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
   newInstructorEmail: string = '';
 
   progress = { total: 0, completed: 0, percentage: 0 };
+  upcomingDeadlines: any[] = [];
 
   private subs = new Subscription();
 
@@ -52,6 +53,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.editorJson = JSON.stringify(syllabus, null, 2);
         this.validateJson();
         this.updateProgress();
+        this.updateUpcomingDeadlines();
       })
     );
 
@@ -60,6 +62,7 @@ export class AppComponent implements OnInit, OnDestroy {
       this.syllabusService.getCheckedStates$().subscribe(states => {
         this.checkedStates = states;
         this.updateProgress();
+        this.updateUpcomingDeadlines();
       })
     );
 
@@ -194,6 +197,64 @@ export class AppComponent implements OnInit, OnDestroy {
     const month = String(d.getMonth() + 1).padStart(2, '0');
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}${month}${day}`;
+  }
+
+  getDueDaysDiff(dueDateStr: string): number {
+    if (!dueDateStr) return 999;
+    const due = new Date(dueDateStr + 'T23:59:59');
+    const today = new Date();
+    due.setHours(0,0,0,0);
+    today.setHours(0,0,0,0);
+    
+    const diffTime = due.getTime() - today.getTime();
+    return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  }
+
+  getCountdownText(dueDateStr: string, isCompleted: boolean): string {
+    if (isCompleted) return '✓ Done';
+    const diff = this.getDueDaysDiff(dueDateStr);
+    if (diff < 0) return `Overdue by ${Math.abs(diff)}d`;
+    if (diff === 0) return 'Due today';
+    if (diff === 1) return 'Due tomorrow';
+    return `Due in ${diff}d`;
+  }
+
+  getCountdownClass(dueDateStr: string, isCompleted: boolean): string {
+    if (isCompleted) return 'completed';
+    const diff = this.getDueDaysDiff(dueDateStr);
+    if (diff < 0 || diff === 0) return 'danger';
+    if (diff === 1) return 'warning';
+    if (diff <= 7) return 'soon';
+    return 'future';
+  }
+
+  updateUpcomingDeadlines(): void {
+    if (!this.syllabus || !this.syllabus.schedule) {
+      this.upcomingDeadlines = [];
+      return;
+    }
+    
+    const list: any[] = [];
+    this.syllabus.schedule.forEach(module => {
+      module.assignments.forEach(assign => {
+        const isCompleted = this.checkedStates?.assignments[`w${module.week}-a-${assign.id}`] || false;
+        if (!isCompleted) {
+          const diff = this.getDueDaysDiff(assign.dueDate);
+          // Alert if overdue or due in 60 days (supports demo seeding)
+          if (diff <= 60) {
+            list.push({
+              ...assign,
+              week: module.week,
+              diff
+            });
+          }
+        }
+      });
+    });
+
+    // Sort by due date (soonest/most overdue first)
+    list.sort((a, b) => a.diff - b.diff);
+    this.upcomingDeadlines = list;
   }
 
   switchProfile(code: string): void {

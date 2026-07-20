@@ -56,4 +56,39 @@ describe('AppComponent', () => {
     expect(URL.createObjectURL).toHaveBeenCalled();
     expect(spyClick).toHaveBeenCalled();
   });
+
+  it('should calculate due date diff correctly', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const target = new Date();
+    target.setDate(target.getDate() + 5);
+    const year = target.getFullYear();
+    const month = String(target.getMonth() + 1).padStart(2, '0');
+    const day = String(target.getDate()).padStart(2, '0');
+    const targetStr = `${year}-${month}-${day}`;
+
+    expect(app.getDueDaysDiff(targetStr)).toBe(5);
+  });
+
+  it('should return correct countdown text and classes', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(app.getCountdownText('2026-09-10', true)).toBe('✓ Done');
+    expect(app.getCountdownClass('2026-09-10', true)).toBe('completed');
+
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    expect(app.getCountdownText(todayStr, false)).toBe('Due today');
+    expect(app.getCountdownClass(todayStr, false)).toBe('danger');
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = `${tomorrow.getFullYear()}-${String(tomorrow.getMonth() + 1).padStart(2, '0')}-${String(tomorrow.getDate()).padStart(2, '0')}`;
+    expect(app.getCountdownText(tomorrowStr, false)).toBe('Due tomorrow');
+    expect(app.getCountdownClass(tomorrowStr, false)).toBe('warning');
+  });
 });

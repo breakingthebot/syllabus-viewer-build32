@@ -127,6 +127,32 @@
     
     <!-- 📅 Weekly Schedule Panel -->
     <div id="schedule-panel" class="tab-panel" *ngIf="activeTab === 'schedule'" role="tabpanel" aria-labelledby="tab-schedule">
+      <!-- Upcoming Deadlines Alerts (Only shown if there are upcoming deadlines) -->
+      <div class="upcoming-alerts-container" *ngIf="upcomingDeadlines.length > 0">
+        <div class="upcoming-alert-banner shadow-sm">
+          <div class="alert-icon">⏰</div>
+          <div class="alert-body">
+            <h3>Upcoming Deliverable Deadlines</h3>
+            <p class="alert-subtitle">Stay on track! The following assignments are due soon (within 60 days):</p>
+            <div class="alert-deadlines-grid">
+              <div 
+                class="alert-deadline-card" 
+                *ngFor="let alert of upcomingDeadlines"
+                [ngClass]="getCountdownClass(alert.dueDate, false)"
+              >
+                <div class="alert-deadline-info">
+                  <span class="alert-deadline-week">Week {{ alert.week }}</span>
+                  <span class="alert-deadline-label">{{ alert.label }}</span>
+                </div>
+                <span class="alert-deadline-badge">
+                  {{ getCountdownText(alert.dueDate, false) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="search-filter-row">
         <!-- Search bar -->
         <div class="search-box">
@@ -228,7 +254,15 @@
                     <span class="checkmark"></span>
                     <div class="item-text-container">
                       <span class="item-text font-bold">{{ assign.label }}</span>
-                      <span class="item-due">📅 Due: {{ assign.dueDate }}</span>
+                      <div class="item-due-row">
+                        <span class="item-due">📅 Due: {{ assign.dueDate }}</span>
+                        <span 
+                          class="badge-countdown" 
+                          [ngClass]="getCountdownClass(assign.dueDate, checkedStates.assignments['w' + module.week + '-a-' + assign.id])"
+                        >
+                          {{ getCountdownText(assign.dueDate, checkedStates.assignments['w' + module.week + '-a-' + assign.id]) }}
+                        </span>
+                      </div>
                     </div>
                   </label>
                 </div>

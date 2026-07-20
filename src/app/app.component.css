@@ -1364,9 +1364,187 @@
 /* Hide toolbar during print */
 @media print {
   .profiles-toolbar,
-  .modal-overlay {
+  .modal-overlay,
+  .upcoming-alerts-container {
     display: none !important;
   }
+}
+
+/* Upcoming deadlines alert section styling */
+.upcoming-alerts-container {
+  margin-bottom: 24px;
+}
+
+.upcoming-alert-banner {
+  display: flex;
+  gap: 16px;
+  background: rgba(245, 158, 11, 0.05);
+  border: 1px solid rgba(245, 158, 11, 0.2);
+  border-radius: var(--radius-md);
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  .upcoming-alert-banner {
+    flex-direction: column;
+    padding: 16px;
+    gap: 12px;
+  }
+}
+
+.alert-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.alert-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.alert-body h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--color-warning);
+  margin-bottom: 4px;
+}
+
+.alert-subtitle {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+
+.alert-deadlines-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.alert-deadline-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.alert-deadline-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.alert-deadline-week {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+
+.alert-deadline-label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 550;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.alert-deadline-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* Color coding by countdown status */
+.badge-countdown {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.item-due-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+/* Status colors */
+.danger {
+  color: var(--color-danger) !important;
+}
+.alert-deadline-card.danger {
+  background-color: rgba(239, 68, 68, 0.06);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+.alert-deadline-card.danger .alert-deadline-badge,
+.badge-countdown.danger {
+  background-color: rgba(239, 68, 68, 0.12);
+  color: var(--color-danger);
+}
+
+.warning {
+  color: var(--color-warning) !important;
+}
+.alert-deadline-card.warning {
+  background-color: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.2);
+}
+.alert-deadline-card.warning .alert-deadline-badge,
+.badge-countdown.warning {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: var(--color-warning);
+}
+
+.soon {
+  color: var(--color-accent) !important;
+}
+.alert-deadline-card.soon {
+  background-color: rgba(56, 189, 248, 0.06);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+.alert-deadline-card.soon .alert-deadline-badge,
+.badge-countdown.soon {
+  background-color: rgba(56, 189, 248, 0.12);
+  color: var(--color-accent);
+}
+
+.future {
+  color: var(--text-secondary) !important;
+}
+.alert-deadline-card.future {
+  background-color: var(--bg-primary);
+  border-color: var(--border-color);
+}
+.alert-deadline-card.future .alert-deadline-badge,
+.badge-countdown.future {
+  background-color: var(--surface-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
+}
+
+.completed {
+  color: var(--color-success) !important;
+}
+.badge-countdown.completed {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: var(--color-success);
 }
 
 
