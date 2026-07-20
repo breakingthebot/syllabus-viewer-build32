@@ -40,6 +40,17 @@ export class AppComponent implements OnInit, OnDestroy {
 
   progress = { total: 0, completed: 0, percentage: 0 };
   upcomingDeadlines: any[] = [];
+  weeklyWorkload: any[] = [];
+  analyticsMetrics = {
+    totalReadings: 0,
+    completedReadings: 0,
+    readingsPercentage: 0,
+    totalAssignments: 0,
+    completedAssignments: 0,
+    assignmentsPercentage: 0,
+    totalHoursEst: 0
+  };
+  showAnalytics: boolean = true;
 
   private subs = new Subscription();
 
@@ -54,6 +65,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.validateJson();
         this.updateProgress();
         this.updateUpcomingDeadlines();
+        this.updateAnalytics();
       })
     );
 
@@ -63,6 +75,7 @@ export class AppComponent implements OnInit, OnDestroy {
         this.checkedStates = states;
         this.updateProgress();
         this.updateUpcomingDeadlines();
+        this.updateAnalytics();
       })
     );
 
@@ -255,6 +268,78 @@ export class AppComponent implements OnInit, OnDestroy {
     // Sort by due date (soonest/most overdue first)
     list.sort((a, b) => a.diff - b.diff);
     this.upcomingDeadlines = list;
+  }
+
+  toggleAnalytics(): void {
+    this.showAnalytics = !this.showAnalytics;
+  }
+
+  updateAnalytics(): void {
+    if (!this.syllabus || !this.syllabus.schedule) {
+      this.weeklyWorkload = [];
+      return;
+    }
+
+    let totalR = 0;
+    let compR = 0;
+    let totalA = 0;
+    let compA = 0;
+    const workloadList: any[] = [];
+    let maxHours = 0;
+
+    this.syllabus.schedule.forEach(module => {
+      const rCount = module.readings ? module.readings.length : 0;
+      const aCount = module.assignments ? module.assignments.length : 0;
+
+      totalR += rCount;
+      totalA += aCount;
+
+      module.readings?.forEach((_, idx) => {
+        if (this.checkedStates?.readings[`w${module.week}-r${idx}`]) {
+          compR++;
+        }
+      });
+
+      module.assignments?.forEach(assign => {
+        if (this.checkedStates?.assignments[`w${module.week}-a-${assign.id}`]) {
+          compA++;
+        }
+      });
+
+      const hours = (rCount * 0.5) + (aCount * 2.5);
+      if (hours > maxHours) maxHours = hours;
+
+      let complexity: 'light' | 'medium' | 'heavy' = 'light';
+      if (hours > 6) complexity = 'heavy';
+      else if (hours >= 3) complexity = 'medium';
+
+      workloadList.push({
+        week: module.week,
+        title: module.title,
+        readingsCount: rCount,
+        assignmentsCount: aCount,
+        hours,
+        complexityLevel: complexity
+      });
+    });
+
+    const maxVal = maxHours || 1;
+    this.weeklyWorkload = workloadList.map(w => ({
+      ...w,
+      percentHeight: Math.max(15, (w.hours / maxVal) * 100)
+    }));
+
+    const totalHoursEst = (totalR * 0.5) + (totalA * 2.5);
+
+    this.analyticsMetrics = {
+      totalReadings: totalR,
+      completedReadings: compR,
+      readingsPercentage: totalR ? Math.round((compR / totalR) * 100) : 0,
+      totalAssignments: totalA,
+      completedAssignments: compA,
+      assignmentsPercentage: totalA ? Math.round((compA / totalA) * 100) : 0,
+      totalHoursEst: Math.round(totalHoursEst * 10) / 10
+    };
   }
 
   switchProfile(code: string): void {

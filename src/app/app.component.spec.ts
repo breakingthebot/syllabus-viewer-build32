@@ -91,4 +91,25 @@ describe('AppComponent', () => {
     expect(app.getCountdownText(tomorrowStr, false)).toBe('Due tomorrow');
     expect(app.getCountdownClass(tomorrowStr, false)).toBe('warning');
   });
+
+  it('should calculate analytics metrics and workload correctly', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(app.analyticsMetrics.totalReadings).toBeGreaterThan(0);
+    expect(app.analyticsMetrics.totalAssignments).toBeGreaterThan(0);
+    expect(app.analyticsMetrics.totalHoursEst).toBeGreaterThan(0);
+    expect(app.weeklyWorkload.length).toBe(6);
+  });
+
+  it('should toggle analytics view state', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(app.showAnalytics).toBeTrue();
+    app.toggleAnalytics();
+    expect(app.showAnalytics).toBeFalse();
+  });
 });

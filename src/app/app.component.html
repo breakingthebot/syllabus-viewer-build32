@@ -153,6 +153,81 @@
         </div>
       </div>
 
+      <!-- 📊 Study Analytics & Workload Estimator Widget -->
+      <div class="analytics-widget-container shadow-sm">
+        <div class="analytics-header" (click)="toggleAnalytics()">
+          <div class="analytics-header-title">
+            <span>📊</span>
+            <h3>Course Analytics & Workload Estimator</h3>
+          </div>
+          <span class="analytics-toggle-arrow">{{ showAnalytics ? '▲' : '▼' }}</span>
+        </div>
+        
+        <div class="analytics-body-drawer" *ngIf="showAnalytics">
+          <div class="analytics-grid">
+            <!-- Left side: Progress metric bars -->
+            <div class="analytics-card progress-card">
+              <h4>📚 Reading Progress</h4>
+              <div class="analytics-progress-wrapper">
+                <div class="analytics-progress-bar">
+                  <div class="analytics-progress-fill readings" [style.width.%]="analyticsMetrics.readingsPercentage"></div>
+                </div>
+                <span class="analytics-progress-label">{{ analyticsMetrics.completedReadings }} / {{ analyticsMetrics.totalReadings }} completed ({{ analyticsMetrics.readingsPercentage }}%)</span>
+              </div>
+              
+              <h4 class="mt-lg">📝 Deliverables Progress</h4>
+              <div class="analytics-progress-wrapper">
+                <div class="analytics-progress-bar">
+                  <div class="analytics-progress-fill assignments" [style.width.%]="analyticsMetrics.assignmentsPercentage"></div>
+                </div>
+                <span class="analytics-progress-label">{{ analyticsMetrics.completedAssignments }} / {{ analyticsMetrics.totalAssignments }} completed ({{ analyticsMetrics.assignmentsPercentage }}%)</span>
+              </div>
+
+              <div class="analytics-workload-summary mt-lg">
+                <span>⏱️</span>
+                <div>
+                  <strong>{{ analyticsMetrics.totalHoursEst }} Hours Total</strong>
+                  <p>Estimated total self-study time for this course.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right side: Weekly workload chart -->
+            <div class="analytics-card chart-card">
+              <h4>Weekly Study Workload Distribution</h4>
+              <p class="chart-subtitle">Calculated workload complexity based on reading length and deliverables count.</p>
+              
+              <div class="workload-chart-timeline">
+                <div class="workload-bar-wrapper" *ngFor="let w of weeklyWorkload">
+                  <div class="workload-bar-tooltip">
+                    <strong>Week {{ w.week }}: {{ w.title }}</strong>
+                    <span>📚 {{ w.readingsCount }} Readings, 📝 {{ w.assignmentsCount }} Tasks</span>
+                    <span>Est: {{ w.hours }} hours</span>
+                  </div>
+                  <div class="workload-bar-fill-container">
+                    <div 
+                      class="workload-bar-fill" 
+                      [style.height.%]="w.percentHeight"
+                      [ngClass]="w.complexityLevel"
+                    >
+                      <span class="workload-hours-badge">{{ w.hours }}h</span>
+                    </div>
+                  </div>
+                  <span class="workload-bar-week">W{{ w.week }}</span>
+                </div>
+              </div>
+
+              <!-- Legend -->
+              <div class="chart-legend">
+                <span class="legend-item"><span class="legend-dot light"></span> Light (&lt; 3h)</span>
+                <span class="legend-item"><span class="legend-dot medium"></span> Medium (3-6h)</span>
+                <span class="legend-item"><span class="legend-dot heavy"></span> Heavy (&gt; 6h)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="search-filter-row">
         <!-- Search bar -->
         <div class="search-box">

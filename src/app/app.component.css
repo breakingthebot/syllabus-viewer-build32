@@ -1365,7 +1365,8 @@
 @media print {
   .profiles-toolbar,
   .modal-overlay,
-  .upcoming-alerts-container {
+  .upcoming-alerts-container,
+  .analytics-widget-container {
     display: none !important;
   }
 }
@@ -1545,6 +1546,308 @@
 .badge-countdown.completed {
   background-color: rgba(16, 185, 129, 0.12);
   color: var(--color-success);
+}
+
+/* 📊 Study Analytics and Workload Estimator Widget styling */
+.analytics-widget-container {
+  background-color: var(--surface-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
+  overflow: hidden;
+  backdrop-filter: blur(10px);
+  transition: border-color var(--transition-fast);
+}
+
+.analytics-widget-container:hover {
+  border-color: rgba(99, 102, 241, 0.25);
+}
+
+.analytics-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  cursor: pointer;
+  background-color: rgba(99, 102, 241, 0.03);
+  user-select: none;
+  transition: background-color var(--transition-fast);
+}
+
+.analytics-header:hover {
+  background-color: rgba(99, 102, 241, 0.06);
+}
+
+.analytics-header-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.analytics-header-title span {
+  font-size: 1.2rem;
+}
+
+.analytics-header-title h3 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.analytics-toggle-arrow {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  transition: transform var(--transition-fast);
+}
+
+.analytics-body-drawer {
+  padding: 20px;
+  border-top: 1px solid var(--border-color);
+  background-color: rgba(255, 255, 255, 0.01);
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .analytics-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+
+.analytics-card {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.analytics-card h4 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 12px;
+}
+
+.analytics-progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.analytics-progress-bar {
+  height: 8px;
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+}
+
+.analytics-progress-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  transition: width var(--transition-normal);
+}
+
+.analytics-progress-fill.readings {
+  background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+}
+
+.analytics-progress-fill.assignments {
+  background: linear-gradient(90deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.3);
+}
+
+.analytics-progress-label {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+}
+
+.analytics-workload-summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.analytics-workload-summary span {
+  font-size: 1.4rem;
+}
+
+.analytics-workload-summary strong {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.analytics-workload-summary p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin: 2px 0 0 0;
+}
+
+.mt-lg {
+  margin-top: 16px;
+}
+
+/* Weekly Workload Bar Chart styling */
+.chart-card {
+  min-height: 250px;
+}
+
+.chart-subtitle {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.workload-chart-timeline {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  height: 120px;
+  padding-top: 20px;
+  border-bottom: 1px solid var(--border-color);
+  margin-bottom: 16px;
+}
+
+.workload-bar-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.workload-bar-fill-container {
+  height: 90px;
+  width: 20px;
+  display: flex;
+  align-items: flex-end;
+  background-color: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-full);
+}
+
+.workload-bar-fill {
+  width: 100%;
+  border-radius: var(--radius-full);
+  transition: height var(--transition-normal);
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+.workload-hours-badge {
+  position: absolute;
+  top: -20px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  opacity: 0.85;
+}
+
+.workload-bar-week {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-top: 8px;
+}
+
+/* Complexity workload color coding */
+.workload-bar-fill.light {
+  background: linear-gradient(180deg, #34d399 0%, #10b981 100%);
+  box-shadow: 0 0 6px rgba(52, 211, 153, 0.2);
+}
+
+.workload-bar-fill.medium {
+  background: linear-gradient(180deg, #fbbf24 0%, #f59e0b 100%);
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.2);
+}
+
+.workload-bar-fill.heavy {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 100%);
+  box-shadow: 0 0 6px rgba(248, 113, 113, 0.2);
+}
+
+/* Tooltip definitions */
+.workload-bar-tooltip {
+  position: absolute;
+  bottom: 115px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  width: 190px;
+  z-index: 10;
+  display: none;
+  pointer-events: none;
+  flex-direction: column;
+  gap: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.workload-bar-tooltip strong {
+  font-size: 0.78rem;
+  color: #ffffff;
+}
+
+.workload-bar-tooltip span {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.workload-bar-wrapper:hover .workload-bar-tooltip {
+  display: flex;
+}
+
+.chart-legend {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 4px;
+}
+
+.legend-item {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend-dot.light {
+  background-color: #10b981;
+}
+
+.legend-dot.medium {
+  background-color: #f59e0b;
+}
+
+.legend-dot.heavy {
+  background-color: #ef4444;
 }
 
 
