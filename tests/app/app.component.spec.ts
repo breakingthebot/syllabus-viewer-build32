@@ -204,4 +204,53 @@ describe('AppComponent', () => {
     };
     expect(app.getSessionStatus(expiredSession)).toBe('Expired');
   });
+
+  it('should book office hour sessions', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    const initialCount = app.studySessions.length;
+    app.bookOfficeHourSession();
+
+    expect(app.studySessions.length).toBe(initialCount + 1);
+    expect(app.studySessions[app.studySessions.length - 1].assignmentId).toBe('office-hours');
+  });
+
+  it('should draft questions emails with assignment reference context', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    app.openEmailScheduler('w1-a1');
+    expect(app.showEmailSchedulerModal).toBeTrue();
+    expect(app.emailDraftSubject).toContain('Lab 1');
+    expect(app.emailDraftBody).toContain('Lab 1');
+
+    app.closeEmailScheduler();
+    expect(app.showEmailSchedulerModal).toBeFalse();
+  });
+
+  it('should parse and import course from raw syllabus text', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    app.syllabusTextInput = `
+      CS 220: Discrete Structures
+      Instructor: Dr. Alan Turing (turing@cambridge.edu)
+      Office: Gate Hall Room 5
+      Office Hours: Fridays 2pm-4pm
+
+      Weekly schedule:
+      Week 1: Mathematical Logic basics
+      - Reading logic introduction
+      - Homework 1: Propositional Calculus due
+    `;
+
+    app.parseAndCreateCourse();
+    expect(app.activeProfileCode).toBe('CS-220');
+    expect(app.syllabus.title).toBe('Discrete Structures');
+    expect(app.syllabus.instructor.name).toBe('Alan Turing');
+  });
 });

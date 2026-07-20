@@ -2448,4 +2448,182 @@
   background-color: rgba(16, 185, 129, 0.05);
 }
 
+/* Instructor card Actions */
+.instructor-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-instructor-action {
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-instructor-action:hover {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+/* Inline Deliverable Email Button */
+.btn-query-email {
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-color);
+  color: var(--text-secondary);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  margin-left: 8px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-query-email:hover {
+  background-color: rgba(56, 189, 248, 0.1);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+/* Split Modal Layout */
+.syllabus-parser-modal {
+  max-width: 880px !important;
+}
+
+.modal-split-layout {
+  display: flex;
+  gap: 32px;
+  align-items: stretch;
+  margin-top: 16px;
+}
+
+@media (max-width: 768px) {
+  .modal-split-layout {
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+.modal-split-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-split-column h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0 0 4px 0;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}
+
+.modal-split-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-weight: 700;
+  font-size: 0.95rem;
+  position: relative;
+  width: 20px;
+}
+
+@media (min-width: 769px) {
+  .modal-split-divider::before {
+    content: '';
+    position: absolute;
+    top: 10%;
+    bottom: 10%;
+    left: 50%;
+    border-left: 1px solid var(--border-color);
+  }
+  .modal-split-divider span {
+    background-color: var(--surface-primary);
+    padding: 10px 0;
+    z-index: 2;
+  }
+}
+
+.syllabus-textarea {
+  min-height: 240px !important;
+  font-family: monospace;
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.flex-1-form {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.flex-grow-group {
+  flex: 1;
+}
+
+.btn-parse {
+  background: linear-gradient(135deg, var(--color-primary), #c084fc) !important;
+  color: #fff !important;
+  border: none !important;
+}
+
+.btn-parse:hover {
+  filter: brightness(1.08);
+}
+
+/* Email draft dialog card */
+.email-draft-card {
+  max-width: 620px !important;
+}
+
+.email-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.email-preview-container {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.email-subject-line {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.email-body-textarea {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  resize: vertical;
+  min-height: 250px;
+  width: 100%;
+  outline: none;
+}
+
+
 

@@ -55,6 +55,15 @@
           </p>
           <p class="instructor-office">📍 {{ syllabus.instructor.office }}</p>
           <p class="instructor-hours">🕒 Hours: {{ syllabus.instructor.officeHours }}</p>
+          
+          <div class="instructor-actions">
+            <button class="btn-instructor-action" (click)="bookOfficeHourSession()" title="Block out instructor office hours in Study Planner">
+              📅 Book Session
+            </button>
+            <button class="btn-instructor-action" (click)="openEmailScheduler()" title="Draft question email template to instructor">
+              📧 Draft Email
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -348,6 +357,13 @@
                         >
                           {{ getCountdownText(assign.dueDate, checkedStates.assignments['w' + module.week + '-a-' + assign.id]) }}
                         </span>
+                        <button 
+                          class="btn-query-email" 
+                          (click)="openEmailScheduler(assign.id); $event.preventDefault(); $event.stopPropagation();"
+                          title="Draft question email to instructor regarding this assignment"
+                        >
+                          ✉️ Ask
+                        </button>
                       </div>
                     </div>
                   </label>
@@ -673,84 +689,163 @@
 
   <!-- Add New Course Modal Popup -->
   <div class="modal-overlay" *ngIf="showAddCourseModal" (click)="showAddCourseModal = false">
-    <div class="modal-card shadow-lg" (click)="$event.stopPropagation()">
+    <div class="modal-card syllabus-parser-modal shadow-lg" (click)="$event.stopPropagation()">
       <div class="modal-header">
-        <h2>➕ Create New Course Profile</h2>
+        <h2>➕ Add New Course</h2>
         <button class="modal-close-btn" (click)="showAddCourseModal = false">✕</button>
       </div>
-      
-      <form (submit)="createNewCourse(); $event.preventDefault()" class="modal-form">
-        <div class="form-group">
-          <label for="new-code-input">Course Code *</label>
-          <input 
-            type="text" 
-            id="new-code-input" 
-            [(ngModel)]="newCourseCode" 
-            name="newCourseCode"
-            placeholder="e.g. MATH-101" 
-            required 
-            class="form-control"
-            autocomplete="off"
-          />
+
+      <div class="modal-split-layout">
+        <!-- Manual Form -->
+        <div class="modal-split-column">
+          <h3>✍️ Manual Creation</h3>
+          <form (submit)="createNewCourse(); $event.preventDefault()" class="modal-form">
+            <div class="form-group">
+              <label for="new-code-input">Course Code *</label>
+              <input 
+                type="text" 
+                id="new-code-input" 
+                [(ngModel)]="newCourseCode" 
+                name="newCourseCode"
+                placeholder="e.g. MATH-101" 
+                required 
+                class="form-control"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="new-title-input">Course Title *</label>
+              <input 
+                type="text" 
+                id="new-title-input" 
+                [(ngModel)]="newCourseTitle" 
+                name="newCourseTitle"
+                placeholder="e.g. Calculus I" 
+                required 
+                class="form-control"
+                autocomplete="off"
+              />
+            </div>
+
+            <div class="form-group">
+              <label for="new-desc-input">Description</label>
+              <textarea 
+                id="new-desc-input" 
+                [(ngModel)]="newCourseDesc" 
+                name="newCourseDesc"
+                placeholder="Brief description of course goals..." 
+                class="form-control textarea-small"
+              ></textarea>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="new-instructor-input">Instructor Name</label>
+                <input 
+                  type="text" 
+                  id="new-instructor-input" 
+                  [(ngModel)]="newInstructorName" 
+                  name="newInstructorName"
+                  placeholder="e.g. Prof. Smith" 
+                  class="form-control"
+                />
+              </div>
+              <div class="form-group">
+                <label for="new-email-input">Instructor Email</label>
+                <input 
+                  type="email" 
+                  id="new-email-input" 
+                  [(ngModel)]="newInstructorEmail" 
+                  name="newInstructorEmail"
+                  placeholder="e.g. smith@univ.edu" 
+                  class="form-control"
+                />
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button type="submit" class="btn-create" [disabled]="!newCourseCode.trim() || !newCourseTitle.trim()">
+                Create Manually
+              </button>
+            </div>
+          </form>
         </div>
 
+        <!-- Divider -->
+        <div class="modal-split-divider">OR</div>
+
+        <!-- Auto-Parse Column -->
+        <div class="modal-split-column">
+          <h3>🪄 Auto-Parse Syllabus Text</h3>
+          <p class="section-intro">Paste your raw syllabus text below. Our parser will automatically extract the course code, title, instructor details, grading weight items, and weekly tasks!</p>
+          
+          <form (submit)="parseAndCreateCourse(); $event.preventDefault();" class="modal-form flex-1-form">
+            <div class="form-group flex-grow-group">
+              <label for="syllabus-text-input">Syllabus Copy-Paste Text:</label>
+              <textarea 
+                id="syllabus-text-input" 
+                [(ngModel)]="syllabusTextInput" 
+                name="syllabusTextInput"
+                placeholder="Paste the full syllabus content here..." 
+                class="form-control syllabus-textarea"
+                required
+              ></textarea>
+            </div>
+
+            <div class="modal-actions">
+              <button type="submit" class="btn-create btn-parse" [disabled]="!syllabusTextInput.trim()">
+                🪄 Parse & Import Course
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Instructor Email Draft Modal popup -->
+  <div class="modal-overlay" *ngIf="showEmailSchedulerModal" (click)="closeEmailScheduler()">
+    <div class="modal-card email-draft-card shadow-lg" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>📧 Draft Email to Instructor</h2>
+        <button class="modal-close-btn" (click)="closeEmailScheduler()">✕</button>
+      </div>
+
+      <div class="modal-body email-modal-body">
         <div class="form-group">
-          <label for="new-title-input">Course Title *</label>
-          <input 
-            type="text" 
-            id="new-title-input" 
-            [(ngModel)]="newCourseTitle" 
-            name="newCourseTitle"
-            placeholder="e.g. Calculus I" 
-            required 
-            class="form-control"
-            autocomplete="off"
-          />
+          <label for="email-assign-selector">Select Course Assignment Reference (Optional):</label>
+          <select 
+            id="email-assign-selector" 
+            [(ngModel)]="selectedEmailAssignmentId" 
+            (ngModelChange)="generateEmailDraft()" 
+            class="form-select-field w-100"
+          >
+            <option value="">-- No specific assignment (General Question) --</option>
+            <option *ngFor="let assign of getSchedulableAssignments()" [value]="assign.id">
+              {{ assign.label }}
+            </option>
+          </select>
         </div>
 
-        <div class="form-group">
-          <label for="new-desc-input">Description</label>
+        <div class="email-preview-container">
+          <div class="email-subject-line">
+            <strong>Subject:</strong> {{ emailDraftSubject }}
+          </div>
           <textarea 
-            id="new-desc-input" 
-            [(ngModel)]="newCourseDesc" 
-            name="newCourseDesc"
-            placeholder="Brief description of course goals..." 
-            class="form-control textarea-small"
+            class="email-body-textarea" 
+            [(ngModel)]="emailDraftBody" 
+            rows="12"
           ></textarea>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label for="new-instructor-input">Instructor Name</label>
-            <input 
-              type="text" 
-              id="new-instructor-input" 
-              [(ngModel)]="newInstructorName" 
-              name="newInstructorName"
-              placeholder="e.g. Prof. Smith" 
-              class="form-control"
-            />
-          </div>
-          <div class="form-group">
-            <label for="new-email-input">Instructor Email</label>
-            <input 
-              type="email" 
-              id="new-email-input" 
-              [(ngModel)]="newInstructorEmail" 
-              name="newInstructorEmail"
-              placeholder="e.g. smith@univ.edu" 
-              class="form-control"
-            />
-          </div>
-        </div>
-
         <div class="modal-actions">
-          <button type="button" class="btn-cancel" (click)="showAddCourseModal = false">Cancel</button>
-          <button type="submit" class="btn-create" [disabled]="!newCourseCode.trim() || !newCourseTitle.trim()">
-            Create Course
+          <button class="btn-cancel" (click)="closeEmailScheduler()">Close</button>
+          <button class="btn-create" (click)="copyEmailToClipboard()">
+            📋 Copy to Clipboard
           </button>
         </div>
-      </form>
+      </div>
     </div>
   </div>
 </div>

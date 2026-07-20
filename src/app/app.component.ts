@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SyllabusService } from './services/syllabus.service';
 import { Syllabus, CheckedStates, WeeklyModule, CategoryGrades, GradeItem, StudySession } from './models/syllabus.model';
+import { parseSyllabusText } from './utils/syllabus-parser';
 
 @Component({
   selector: 'app-root',
@@ -37,6 +38,13 @@ export class AppComponent implements OnInit, OnDestroy {
   newCourseDesc: string = '';
   newInstructorName: string = '';
   newInstructorEmail: string = '';
+  syllabusTextInput: string = '';
+
+  // Instructor Office Hours & Email Scheduler properties
+  showEmailSchedulerModal: boolean = false;
+  selectedEmailAssignmentId: string = '';
+  emailDraftSubject: string = '';
+  emailDraftBody: string = '';
 
   progress = { total: 0, completed: 0, percentage: 0 };
   upcomingDeadlines: any[] = [];
@@ -522,6 +530,91 @@ export class AppComponent implements OnInit, OnDestroy {
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
       return `Starts in ${diffDays}d`;
     }
+  }
+
+  parseAndCreateCourse(): void {
+    if (!this.syllabusTextInput.trim()) return;
+
+    try {
+      const parsedSyllabus = parseSyllabusText(this.syllabusTextInput);
+      this.syllabusService.createProfile(parsedSyllabus);
+      
+      this.syllabusTextInput = '';
+      this.showAddCourseModal = false;
+      this.expandedWeek = 1;
+    } catch (e) {
+      alert('Failed to parse syllabus. Please verify that the text is formatted correctly.');
+    }
+  }
+
+  bookOfficeHourSession(): void {
+    if (!this.syllabus || !this.syllabus.instructor) return;
+    const inst = this.syllabus.instructor;
+    
+    const today = new Date();
+    const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+    
+    this.syllabusService.addStudySession(
+      'office-hours',
+      `🏢 Office Hours: ${inst.name}`,
+      todayStr,
+      '14:00',
+      '15:00',
+      `Consultation meeting with instructor regarding recent topics. Office location: ${inst.office}. Schedule details: ${inst.officeHours}`
+    );
+    
+    alert(`Scheduled office hour block for today (${todayStr}) in your Study Planner timeline!`);
+  }
+
+  openEmailScheduler(assignId?: string): void {
+    this.showEmailSchedulerModal = true;
+    if (assignId) {
+      this.selectedEmailAssignmentId = assignId;
+    } else {
+      this.selectedEmailAssignmentId = '';
+    }
+    this.generateEmailDraft();
+  }
+
+  closeEmailScheduler(): void {
+    this.showEmailSchedulerModal = false;
+  }
+
+  generateEmailDraft(): void {
+    if (!this.syllabus || !this.syllabus.instructor) return;
+    const inst = this.syllabus.instructor;
+    const course = this.syllabus.courseCode;
+    
+    this.emailDraftSubject = `Question regarding ${course}`;
+    
+    let taskContext = 'the course material';
+    if (this.selectedEmailAssignmentId) {
+      let foundLabel = '';
+      this.syllabus.schedule.forEach(m => {
+        const matched = m.assignments.find(a => a.id === this.selectedEmailAssignmentId);
+        if (matched) {
+          foundLabel = matched.label;
+        }
+      });
+      if (foundLabel) {
+        taskContext = `"${foundLabel}"`;
+        this.emailDraftSubject = `Question regarding ${course} - ${foundLabel}`;
+      }
+    }
+    
+    this.emailDraftBody = `Dear Professor ${inst.name.split(' ').pop()},\n\n` +
+      `I hope you are having a productive week.\n\n` +
+      `I am writing to request some guidance regarding ${taskContext} in ${course}. I had a question on the core requirements and wanted to clarify how to approach it.\n\n` +
+      `Would you be available to discuss this briefly during your office hours (${inst.officeHours}), or at another convenient time?\n\n` +
+      `Thank you for your time and help.\n\n` +
+      `Best regards,\n` +
+      `[Your Name]\n` +
+      `Student ID: [Your Student ID]`;
+  }
+
+  copyEmailToClipboard(): void {
+    navigator.clipboard.writeText(this.emailDraftBody);
+    alert('Email draft text copied to clipboard!');
   }
 
   switchProfile(code: string): void {
