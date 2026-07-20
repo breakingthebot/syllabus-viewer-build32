@@ -112,4 +112,51 @@ describe('AppComponent', () => {
     app.toggleAnalytics();
     expect(app.showAnalytics).toBeFalse();
   });
+
+  it('should calculate grade projections correctly', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(app.projectedScore).toBeNull();
+    expect(app.projectedLetter).toBe('N/A');
+
+    app.grades = {
+      'Weekly Labs & Quizzes': [
+        { id: 'g1', label: 'Quiz 1', score: 90 },
+        { id: 'g2', label: 'Quiz 2', score: 100 }
+      ]
+    };
+    app.calculateGradeProjections();
+
+    expect(app.projectedScore).toBe(95);
+    expect(app.projectedLetter).toBe('A');
+
+    app.grades['Final Architecture Proposal'] = [
+      { id: 'g3', label: 'Final Proposal', score: 80 }
+    ];
+    app.calculateGradeProjections();
+
+    // Graded weights: Weekly Labs & Quizzes (30%), Final Architecture Proposal (35%)
+    // (95 * 30 + 80 * 35) / 65 = 86.92%
+    expect(app.projectedScore).toBe(86.9);
+    expect(app.projectedLetter).toBe('B');
+  });
+
+  it('should compute letter grade ranges correctly', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    expect(app.getLetterGrade(95)).toBe('A');
+    expect(app.getLetterGrade(91)).toBe('A-');
+    expect(app.getLetterGrade(88)).toBe('B+');
+    expect(app.getLetterGrade(85)).toBe('B');
+    expect(app.getLetterGrade(81)).toBe('B-');
+    expect(app.getLetterGrade(78)).toBe('C+');
+    expect(app.getLetterGrade(75)).toBe('C');
+    expect(app.getLetterGrade(71)).toBe('C-');
+    expect(app.getLetterGrade(65)).toBe('D');
+    expect(app.getLetterGrade(50)).toBe('F');
+  });
 });

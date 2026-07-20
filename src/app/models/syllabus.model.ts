@@ -48,3 +48,13 @@ export interface CheckedStates {
   readings: { [key: string]: boolean };
   assignments: { [key: string]: boolean };
 }
+
+export interface GradeItem {
+  id: string;
+  label: string;
+  score: number;
+}
+
+export interface CategoryGrades {
+  [categoryLabel: string]: GradeItem[];
+}

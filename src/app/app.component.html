@@ -351,19 +351,100 @@
     <!-- 📊 Grading & Policies Panel -->
     <div id="grading-panel" class="tab-panel" *ngIf="activeTab === 'grading'" role="tabpanel" aria-labelledby="tab-grading">
       <div class="grading-policies-grid">
-        <!-- Grading breakdown (Left Column) -->
+        <!-- Grading breakdown & Grade Tracker (Left Column) -->
         <div class="grading-column shadow-sm">
-          <h2>📊 Grading Weight Distribution</h2>
-          <p class="section-intro">Your final grade will be aggregated based on the following course components weighting:</p>
+          <h2>📊 Interactive Grade Tracker</h2>
+          <p class="section-intro">Input your grades in each category to track your average and project what scores you need to achieve your target grade.</p>
           
-          <div class="grading-list">
-            <div class="grading-item-row" *ngFor="let item of syllabus.grading">
-              <div class="grading-meta-row">
-                <span class="grading-label">{{ item.label }}</span>
-                <span class="grading-weight">{{ item.weightPercentage }}%</span>
+          <!-- GPA Projection Summary Widget -->
+          <div class="gpa-summary-card">
+            <div class="gpa-badge-col">
+              <span class="gpa-badge-title">Projected Grade</span>
+              <div class="gpa-score-circle" [class.no-score]="projectedScore === null">
+                <span class="gpa-letter">{{ projectedLetter }}</span>
+                <span class="gpa-pct" *ngIf="projectedScore !== null">{{ projectedScore }}%</span>
               </div>
-              <div class="grading-progress-track">
-                <div class="grading-progress-bar" [style.width.%]="item.weightPercentage"></div>
+            </div>
+            
+            <div class="gpa-goal-col">
+              <span class="gpa-badge-title">Grade Goal Projection</span>
+              <div class="gpa-goal-input-row">
+                <label for="target-final-grade">Target Grade (%):</label>
+                <input 
+                  type="number" 
+                  [(ngModel)]="targetFinalGrade" 
+                  (ngModelChange)="calculateGradeProjections()" 
+                  min="0" 
+                  max="100" 
+                  id="target-final-grade"
+                  class="gpa-input"
+                />
+              </div>
+              <div class="gpa-goal-result">
+                <p class="gpa-goal-text" *ngIf="requiredRemainingScore !== null && !targetWarningMessage">
+                  You need to average <strong>{{ requiredRemainingScore }}%</strong> on remaining ungraded categories to hit your target.
+                </p>
+                <p class="gpa-goal-warning" *ngIf="targetWarningMessage">
+                  {{ targetWarningMessage }}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- List of Grading Categories and their grades -->
+          <div class="grading-list">
+            <div class="grading-category-box" *ngFor="let item of syllabus.grading">
+              <div class="grading-category-header">
+                <div>
+                  <span class="grading-category-label">{{ item.label }}</span>
+                  <span class="grading-category-weight">Weight: {{ item.weightPercentage }}%</span>
+                </div>
+                <!-- Category Score display -->
+                <span class="grading-category-average" *ngIf="grades && grades[item.label] && grades[item.label].length">
+                  Avg: {{ calculateCategoryAvg(item.label) }}%
+                </span>
+                <span class="grading-category-average ungraded" *ngIf="!grades || !grades[item.label] || !grades[item.label].length">
+                  Ungraded
+                </span>
+              </div>
+              
+              <!-- Recorded Grades list -->
+              <div class="recorded-grades-container" *ngIf="grades && grades[item.label] && grades[item.label].length">
+                <div class="recorded-grade-row" *ngFor="let grade of grades[item.label]">
+                  <span class="grade-label">✓ {{ grade.label }}</span>
+                  <div class="grade-actions">
+                    <span class="grade-score-value">{{ grade.score }}%</span>
+                    <button class="btn-delete-grade" (click)="deleteGrade(item.label, grade.id)">🗑️</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Inline Add Grade Form Toggle -->
+              <div class="add-grade-btn-row">
+                <button class="btn-toggle-add-grade" (click)="toggleAddGradeForm(item.label)">
+                  {{ showAddGradeForm[item.label] ? '✕ Close Form' : '➕ Add Score' }}
+                </button>
+              </div>
+
+              <!-- Inline Add Grade Form -->
+              <div class="add-grade-inline-form" *ngIf="showAddGradeForm[item.label]">
+                <div class="form-input-group-inline">
+                  <input 
+                    type="text" 
+                    [(ngModel)]="newGradeLabel" 
+                    placeholder="e.g. Lab 1, Exam" 
+                    class="grade-text-input"
+                  />
+                  <input 
+                    type="number" 
+                    [(ngModel)]="newGradeScore" 
+                    min="0" 
+                    max="150" 
+                    class="grade-score-input"
+                  />
+                  <span class="pct-symbol">%</span>
+                  <button class="btn-submit-grade" (click)="addGrade(item.label)">Add</button>
+                </div>
               </div>
             </div>
           </div>

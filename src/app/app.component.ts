@@ -7,7 +7,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { SyllabusService } from './services/syllabus.service';
-import { Syllabus, CheckedStates, WeeklyModule } from './models/syllabus.model';
+import { Syllabus, CheckedStates, WeeklyModule, CategoryGrades, GradeItem } from './models/syllabus.model';
 
 @Component({
   selector: 'app-root',
@@ -52,6 +52,18 @@ export class AppComponent implements OnInit, OnDestroy {
   };
   showAnalytics: boolean = true;
 
+  // Grade Tracker properties
+  grades!: CategoryGrades;
+  projectedScore: number | null = null;
+  projectedLetter: string = 'N/A';
+  targetFinalGrade: number = 90;
+  requiredRemainingScore: number | null = null;
+  targetWarningMessage: string | null = null;
+
+  showAddGradeForm: { [category: string]: boolean } = {};
+  newGradeLabel: string = '';
+  newGradeScore: number = 100;
+
   private subs = new Subscription();
 
   constructor(private syllabusService: SyllabusService) {}
@@ -90,6 +102,14 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subs.add(
       this.syllabusService.getActiveProfileCode$().subscribe(code => {
         this.activeProfileCode = code;
+      })
+    );
+
+    // Subscribe to Grades updates
+    this.subs.add(
+      this.syllabusService.getGrades$().subscribe(grades => {
+        this.grades = grades;
+        this.calculateGradeProjections();
       })
     );
   }
@@ -340,6 +360,86 @@ export class AppComponent implements OnInit, OnDestroy {
       assignmentsPercentage: totalA ? Math.round((compA / totalA) * 100) : 0,
       totalHoursEst: Math.round(totalHoursEst * 10) / 10
     };
+  }
+
+  calculateGradeProjections(): void {
+    if (!this.syllabus || !this.syllabus.grading || !this.grades) return;
+
+    let totalGradedWeight = 0;
+    let totalWeightedScore = 0;
+
+    this.syllabus.grading.forEach(item => {
+      const catGrades = this.grades[item.label] || [];
+      if (catGrades.length > 0) {
+        const avg = catGrades.reduce((sum, g) => sum + g.score, 0) / catGrades.length;
+        totalGradedWeight += item.weightPercentage;
+        totalWeightedScore += avg * (item.weightPercentage / 100);
+      }
+    });
+
+    if (totalGradedWeight > 0) {
+      this.projectedScore = Math.round((totalWeightedScore / (totalGradedWeight / 100)) * 10) / 10;
+      this.projectedLetter = this.getLetterGrade(this.projectedScore);
+    } else {
+      this.projectedScore = null;
+      this.projectedLetter = 'N/A';
+    }
+
+    const remainingWeight = 100 - totalGradedWeight;
+    if (remainingWeight > 0) {
+      const needed = (this.targetFinalGrade - (totalWeightedScore * 100)) / (remainingWeight / 100);
+      this.requiredRemainingScore = Math.round(needed * 10) / 10;
+      if (needed > 100) {
+        this.targetWarningMessage = `⚠️ Mathematically impossible (requires ${this.requiredRemainingScore}% average on ungraded items).`;
+      } else if (needed < 0) {
+        this.targetWarningMessage = `🎉 Secured! (You need a 0% average on remaining items to reach target).`;
+      } else {
+        this.targetWarningMessage = null;
+      }
+    } else {
+      this.requiredRemainingScore = null;
+      this.targetWarningMessage = this.projectedScore && this.projectedScore >= this.targetFinalGrade
+        ? '🎉 Target Achieved!'
+        : '❌ Class is finished. Target not met.';
+    }
+  }
+
+  getLetterGrade(score: number): string {
+    if (score >= 93) return 'A';
+    if (score >= 90) return 'A-';
+    if (score >= 87) return 'B+';
+    if (score >= 83) return 'B';
+    if (score >= 80) return 'B-';
+    if (score >= 77) return 'C+';
+    if (score >= 73) return 'C';
+    if (score >= 70) return 'C-';
+    if (score >= 60) return 'D';
+    return 'F';
+  }
+
+  addGrade(category: string): void {
+    if (!this.newGradeLabel.trim() || this.newGradeScore === null || this.newGradeScore === undefined) return;
+    this.syllabusService.addGrade(category, this.newGradeLabel.trim(), this.newGradeScore);
+    
+    this.newGradeLabel = '';
+    this.newGradeScore = 100;
+    this.showAddGradeForm[category] = false;
+  }
+
+  deleteGrade(category: string, id: string): void {
+    this.syllabusService.deleteGrade(category, id);
+  }
+  
+  toggleAddGradeForm(category: string): void {
+    this.showAddGradeForm[category] = !this.showAddGradeForm[category];
+  }
+
+  calculateCategoryAvg(category: string): number {
+    if (!this.grades) return 0;
+    const list = this.grades[category] || [];
+    if (list.length === 0) return 0;
+    const avg = list.reduce((sum, g) => sum + g.score, 0) / list.length;
+    return Math.round(avg * 10) / 10;
   }
 
   switchProfile(code: string): void {

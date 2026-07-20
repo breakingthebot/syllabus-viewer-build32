@@ -1850,4 +1850,325 @@
   background-color: #ef4444;
 }
 
+/* 📊 Gradebook & GPA Tracker widget styling */
+.gpa-summary-card {
+  display: flex;
+  gap: 24px;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+@media (max-width: 600px) {
+  .gpa-summary-card {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+}
+
+.gpa-badge-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 140px;
+}
+
+.gpa-badge-title {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.gpa-score-circle {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-accent) 100%);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 0 16px rgba(99, 102, 241, 0.35);
+  transition: all var(--transition-normal);
+}
+
+.gpa-score-circle.no-score {
+  background: var(--surface-primary);
+  border-color: var(--border-color);
+  box-shadow: none;
+}
+
+.gpa-letter {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.gpa-score-circle.no-score .gpa-letter {
+  color: var(--text-secondary);
+}
+
+.gpa-pct {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 4px;
+}
+
+.gpa-goal-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.gpa-goal-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gpa-goal-input-row label {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+}
+
+.gpa-input {
+  width: 60px;
+  padding: 6px 10px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.gpa-input:focus {
+  border-color: var(--color-primary);
+}
+
+.gpa-goal-result {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+.gpa-goal-text {
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+.gpa-goal-text strong {
+  color: var(--color-accent);
+}
+
+.gpa-goal-warning {
+  color: var(--color-warning);
+  font-weight: 550;
+  margin: 0;
+}
+
+/* Category card structures */
+.grading-category-box {
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 16px;
+  margin-bottom: 16px;
+  transition: border-color var(--transition-fast);
+}
+
+.grading-category-box:hover {
+  border-color: rgba(99, 102, 241, 0.2);
+}
+
+.grading-category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.grading-category-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  display: block;
+}
+
+.grading-category-weight {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 2px;
+  display: block;
+}
+
+.grading-category-average {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-accent);
+  padding: 4px 8px;
+  background-color: rgba(56, 189, 248, 0.08);
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+
+.grading-category-average.ungraded {
+  color: var(--text-secondary);
+  background-color: var(--surface-secondary);
+  font-weight: 500;
+}
+
+.recorded-grades-container {
+  border-top: 1px solid var(--border-color);
+  padding-top: 8px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recorded-grade-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 10px;
+  background-color: var(--surface-secondary);
+  border-radius: var(--radius-xs);
+}
+
+.grade-label {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 70%;
+}
+
+.grade-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.grade-score-value {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.btn-delete-grade {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  opacity: 0.5;
+  padding: 2px;
+  transition: opacity var(--transition-fast);
+}
+
+.btn-delete-grade:hover {
+  opacity: 1;
+}
+
+.add-grade-btn-row {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn-toggle-add-grade {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: color var(--transition-fast);
+}
+
+.btn-toggle-add-grade:hover {
+  color: var(--color-primary-hover);
+}
+
+.add-grade-inline-form {
+  margin-top: 12px;
+  padding: 12px;
+  background-color: var(--surface-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.form-input-group-inline {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grade-text-input {
+  flex: 1;
+  padding: 6px 10px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.grade-text-input:focus {
+  border-color: var(--color-primary);
+}
+
+.grade-score-input {
+  width: 55px;
+  padding: 6px 8px;
+  background-color: var(--bg-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  text-align: center;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.grade-score-input:focus {
+  border-color: var(--color-primary);
+}
+
+.pct-symbol {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.btn-submit-grade {
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color var(--transition-fast);
+}
+
+.btn-submit-grade:hover {
+  background-color: var(--color-primary-hover);
+}
+
 

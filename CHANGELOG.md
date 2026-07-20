@@ -25,4 +25,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Due date countdown badges next to assignments, color-coding and showing dynamically calculated states ('Due today', 'Due tomorrow', 'Due in X days', 'Overdue by X days', and 'Done').
   - Global Upcoming Deliverable Deadlines alert block above the weekly schedule grid, listing unchecked deliverables in the near future.
 - Added Jest/Karma unit tests in `tests/` directory verifying state updates, completions, layout titles, profile operations, calendar date parsing, and due date difference maths.
+- Added **📊 Course Analytics & Workload Estimator** Collapsible Drawer widget:
+  - Displays progress percentages for readings and deliverables.
+  - Visualizes weekly workload distributions using vertical bar charts color-coded by workload complexity (light, medium, heavy) and interactive hover detail tooltips.
+- Added **Interactive Grade Tracker & Goal Projection Calculator**:
+  - Displays dynamic current average scores and letter grade badges.
+  - Integrates target grade goal projection tracking, displaying estimated averages required on ungraded categories to hit user goals.
+  - Added recorded grades entries checklist per category, complete with add/delete operations and inline popup forms.
+  - Added unit test spec suites asserting weight averages and letter grade ranges.
 

@@ -5,7 +5,7 @@
 
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { Syllabus, CheckedStates } from '../models/syllabus.model';
+import { Syllabus, CheckedStates, CategoryGrades, GradeItem } from '../models/syllabus.model';
 
 export interface CourseProfile {
   code: string;
@@ -129,6 +129,7 @@ const DEFAULT_SYLLABUS: Syllabus = {
 export class SyllabusService {
   private syllabusSubject: BehaviorSubject<Syllabus>;
   private checkedSubject: BehaviorSubject<CheckedStates>;
+  private gradesSubject!: BehaviorSubject<CategoryGrades>;
   private profilesSubject = new BehaviorSubject<CourseProfile[]>([]);
   private activeProfileCodeSubject = new BehaviorSubject<string>('');
 
@@ -209,6 +210,20 @@ export class SyllabusService {
       console.warn('Failed to load active checked states', e);
     }
     this.checkedSubject = new BehaviorSubject<CheckedStates>(activeChecked);
+
+    // 5. Load active profile's grades
+    let activeGrades: CategoryGrades = {};
+    try {
+      const rawGrades = localStorage.getItem(this.getGradesKey(activeCode));
+      if (rawGrades) {
+        activeGrades = JSON.parse(rawGrades);
+      } else {
+        localStorage.setItem(this.getGradesKey(activeCode), JSON.stringify(activeGrades));
+      }
+    } catch (e) {
+      console.warn('Failed to load active grades', e);
+    }
+    this.gradesSubject = new BehaviorSubject<CategoryGrades>(activeGrades);
   }
 
   // Key generators
@@ -218,6 +233,10 @@ export class SyllabusService {
 
   private getCheckedKey(code: string): string {
     return `@syllabus_viewer/checked_states_${code}`;
+  }
+
+  private getGradesKey(code: string): string {
+    return `@syllabus_viewer/grades_${code}`;
   }
 
   // Core getters
@@ -231,6 +250,10 @@ export class SyllabusService {
 
   getCheckedStates$(): Observable<CheckedStates> {
     return this.checkedSubject.asObservable();
+  }
+
+  getGrades$(): Observable<CategoryGrades> {
+    return this.gradesSubject.asObservable();
   }
 
   getCheckedStatesValue(): CheckedStates {
@@ -290,6 +313,18 @@ export class SyllabusService {
       console.error('Failed to load checked states for profile ' + code, e);
     }
     this.checkedSubject.next(loadedChecked);
+
+    // Load active grades
+    let loadedGrades: CategoryGrades = {};
+    try {
+      const rawGrades = localStorage.getItem(this.getGradesKey(code));
+      if (rawGrades) {
+        loadedGrades = JSON.parse(rawGrades);
+      }
+    } catch (e) {
+      console.error('Failed to load grades for profile ' + code, e);
+    }
+    this.gradesSubject.next(loadedGrades);
   }
 
   // Update current active syllabus
@@ -317,8 +352,13 @@ export class SyllabusService {
         localStorage.setItem(this.getSyllabusKey(syllabus.courseCode), JSON.stringify(syllabus));
         const checked = this.checkedSubject.getValue();
         localStorage.setItem(this.getCheckedKey(syllabus.courseCode), JSON.stringify(checked));
+        
+        const grades = this.gradesSubject.getValue();
+        localStorage.setItem(this.getGradesKey(syllabus.courseCode), JSON.stringify(grades));
+
         localStorage.removeItem(this.getSyllabusKey(code));
         localStorage.removeItem(this.getCheckedKey(code));
+        localStorage.removeItem(this.getGradesKey(code));
         localStorage.setItem(ACTIVE_PROFILE_KEY, syllabus.courseCode);
       } catch (e) {
         console.error('Failed to rename storage keys for modified courseCode', e);
@@ -344,6 +384,7 @@ export class SyllabusService {
     try {
       localStorage.setItem(this.getSyllabusKey(code), JSON.stringify(syllabus));
       localStorage.setItem(this.getCheckedKey(code), JSON.stringify({ readings: {}, assignments: {} }));
+      localStorage.setItem(this.getGradesKey(code), JSON.stringify({}));
     } catch (e) {
       console.error('Failed to create storage slot for profile ' + code, e);
     }
@@ -362,6 +403,7 @@ export class SyllabusService {
     try {
       localStorage.removeItem(this.getSyllabusKey(code));
       localStorage.removeItem(this.getCheckedKey(code));
+      localStorage.removeItem(this.getGradesKey(code));
     } catch (e) {
       console.error('Failed to delete storage slots for profile ' + code, e);
     }
@@ -441,5 +483,47 @@ export class SyllabusService {
 
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
     return { total, completed, percentage };
+  }
+
+  addGrade(category: string, label: string, score: number): void {
+    const current = this.gradesSubject.getValue();
+    const list = current[category] ? [...current[category]] : [];
+    
+    const newGrade: GradeItem = {
+      id: 'g_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      label: label.trim(),
+      score
+    };
+    list.push(newGrade);
+
+    const updated = {
+      ...current,
+      [category]: list
+    };
+
+    this.saveGrades(updated);
+  }
+
+  deleteGrade(category: string, id: string): void {
+    const current = this.gradesSubject.getValue();
+    if (!current[category]) return;
+
+    const list = current[category].filter((g: GradeItem) => g.id !== id);
+    const updated = {
+      ...current,
+      [category]: list
+    };
+
+    this.saveGrades(updated);
+  }
+
+  private saveGrades(grades: CategoryGrades): void {
+    const code = this.activeProfileCodeSubject.getValue();
+    try {
+      localStorage.setItem(this.getGradesKey(code), JSON.stringify(grades));
+    } catch (e) {
+      console.error('Failed to save grades to localStorage', e);
+    }
+    this.gradesSubject.next(grades);
   }
 }
