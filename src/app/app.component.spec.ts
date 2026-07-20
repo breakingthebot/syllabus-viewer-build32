@@ -31,4 +31,29 @@ describe('AppComponent', () => {
     const compiled = fixture.nativeElement as HTMLElement;
     expect(compiled.querySelector('h1')?.textContent).toContain('Advanced Web Engineering');
   });
+
+  it('should format ICS calendar date correctly', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+    
+    const d = new Date('2026-09-07T12:00:00');
+    // @ts-ignore
+    const formatted = app.formatIcsDate(d);
+    expect(formatted).toBe('20260907');
+  });
+
+  it('should generate ICS text data on calendar export', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app = fixture.componentInstance;
+    fixture.detectChanges();
+
+    spyOn(URL, 'createObjectURL').and.returnValue('blob:url');
+    const spyClick = spyOn(HTMLAnchorElement.prototype, 'click').and.callFake(() => {});
+
+    app.exportCalendarIcs();
+    
+    expect(URL.createObjectURL).toHaveBeenCalled();
+    expect(spyClick).toHaveBeenCalled();
+  });
 });

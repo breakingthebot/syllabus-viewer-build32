@@ -114,6 +114,88 @@ export class AppComponent implements OnInit, OnDestroy {
     window.print();
   }
 
+  exportCalendarIcs(): void {
+    if (!this.syllabus || !this.syllabus.schedule) return;
+
+    const icsContent: string[] = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Academic Syllabus Tracker//EN',
+      'CALSCALE:GREGORIAN',
+      'METHOD:PUBLISH'
+    ];
+
+    const now = new Date();
+    const dtstamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+    this.syllabus.schedule.forEach(module => {
+      // 1. Add weekly topic event (Monday of that course week to Friday)
+      const startBase = new Date('2026-09-07T00:00:00');
+      const weekStart = new Date(startBase.getTime());
+      weekStart.setDate(startBase.getDate() + (module.week - 1) * 7);
+      
+      const weekEnd = new Date(weekStart.getTime());
+      weekEnd.setDate(weekStart.getDate() + 5);
+
+      const yyyymmddStart = this.formatIcsDate(weekStart);
+      const yyyymmddEnd = this.formatIcsDate(weekEnd);
+
+      icsContent.push('BEGIN:VEVENT');
+      icsContent.push(`UID:week-${module.week}-${this.syllabus.courseCode}@syllabus-viewer.vercel.app`);
+      icsContent.push(`DTSTAMP:${dtstamp}`);
+      icsContent.push(`DTSTART;VALUE=DATE:${yyyymmddStart}`);
+      icsContent.push(`DTEND;VALUE=DATE:${yyyymmddEnd}`);
+      icsContent.push(`SUMMARY:[${this.syllabus.courseCode}] Week ${module.week}: ${module.title}`);
+      icsContent.push(`DESCRIPTION:${module.description.replace(/,/g, '\\,')}`);
+      icsContent.push('END:VEVENT');
+
+      // 2. Add individual assignment due dates
+      module.assignments.forEach((assign, index) => {
+        const dueDateStr = assign.dueDate;
+        if (!dueDateStr) return;
+
+        const parsedDate = new Date(dueDateStr + 'T12:00:00');
+        const nextDay = new Date(parsedDate.getTime());
+        nextDay.setDate(parsedDate.getDate() + 1);
+
+        const yyyymmddDue = this.formatIcsDate(parsedDate);
+        const yyyymmddDueEnd = this.formatIcsDate(nextDay);
+
+        icsContent.push('BEGIN:VEVENT');
+        icsContent.push(`UID:assign-${assign.id || 'w' + module.week + '-a' + index}-${this.syllabus.courseCode}@syllabus-viewer.vercel.app`);
+        icsContent.push(`DTSTAMP:${dtstamp}`);
+        icsContent.push(`DTSTART;VALUE=DATE:${yyyymmddDue}`);
+        icsContent.push(`DTEND;VALUE=DATE:${yyyymmddDueEnd}`);
+        icsContent.push(`SUMMARY:[${this.syllabus.courseCode}] Due: ${assign.label}`);
+        icsContent.push(`DESCRIPTION:Assignment deliverable from course syllabus week ${module.week}.`);
+        icsContent.push('END:VEVENT');
+      });
+    });
+
+    icsContent.push('END:VCALENDAR');
+
+    const calendarData = icsContent.join('\r\n');
+    
+    try {
+      const blob = new Blob([calendarData], { type: 'text/calendar;charset=utf-8' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${this.syllabus.courseCode.toLowerCase().replace(/[^a-z0-9]/g, '_')}_schedule.ics`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (e) {
+      console.error('Failed to generate calendar file download', e);
+    }
+  }
+
+  private formatIcsDate(d: Date): string {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}${month}${day}`;
+  }
+
   switchProfile(code: string): void {
     this.syllabusService.switchProfile(code);
     this.expandedWeek = 1;
