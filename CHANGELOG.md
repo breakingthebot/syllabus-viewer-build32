@@ -33,4 +33,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Integrates target grade goal projection tracking, displaying estimated averages required on ungraded categories to hit user goals.
   - Added recorded grades entries checklist per category, complete with add/delete operations and inline popup forms.
   - Added unit test spec suites asserting weight averages and letter grade ranges.
+- Added **📅 Study Planner & Calendar Event Scheduler**:
+  - Adds dedicated study session timeline agenda.
+  - Integrates creation form selecting tasks, date, start/end times, and note goals.
+  - Generates countdown badges ('⚡ Active Now', 'Scheduled Today', 'Starts in X days', 'Expired', '✓ Completed') matching local time.
+  - Supports task-completions and slot deletion handlers.
+- Added **Syllabus Raw Text Auto-Parser**:
+  - Created a parsing script `syllabus-parser.ts` to scan raw pasted copy text and extract structured course codes, titles, instructors, grading breakdowns, weekly schedules, readings, and deliverables.
+  - Restructured the course creation dialog with manual setup on the left and magic parsing text area on the right.
+- Added **Instructor Office Hours Scheduler & Email Query Drafter**:
+  - Added interactive buttons to the instructor profile widget to book an office hour study session block or open the email template query modal.
+  - Renders email templates with pre-selected assignment context subjects and bodies, featuring a one-click copy button.
+  - Placed "Ask" email buttons inline on deliverables checklists to immediately compose query drafts.
 
